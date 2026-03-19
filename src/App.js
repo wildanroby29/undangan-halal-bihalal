@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// PASTIKAN LINK GAS SUDAH BENAR
+// GANTI DENGAN LINK DEPLOY APPS SCRIPT LU
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwSpM7kX43OObUMz0Cy-I8pdcEiAYo3A6Fhgg10AAukX6anuQrkjSRo9rOutljKeu-ciw/exec";
+  "https://script.google.com/macros/s/AKfycbxMGtImJLpjoIxpohP2hCxxCMXMbwHPJIeD3DWXaS2nXR4aadNKUNtD_LL3ZgZrNxwwLw/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -21,6 +21,7 @@ const DAFTAR_TEMA = {
 };
 
 const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
+const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(196, 167, 79, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0); } `;
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
@@ -46,7 +47,6 @@ const LoadingScreen = styled.div`
     height: 4px;
     background: #eee;
     border-radius: 10px;
-    position: relative;
     overflow: hidden;
   }
   .progress {
@@ -55,6 +55,27 @@ const LoadingScreen = styled.div`
     background: linear-gradient(90deg, #eee 25%, #c4a74f 50%, #eee 75%);
     background-size: 200% 100%;
     animation: ${shimmer} 1.5s infinite;
+  }
+`;
+
+const MusicButton = styled(motion.div)`
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 55px;
+  height: 55px;
+  background: ${(props) => props.btnGrad};
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999;
+  animation: ${(props) => (props.playing ? pulse : "none")} 2s infinite;
+  svg {
+    width: 26px;
+    height: 26px;
+    fill: white;
   }
 `;
 
@@ -78,10 +99,9 @@ const Content = styled(motion.div)`
   flex-direction: column;
   align-items: center;
 `;
-
 const Title = styled(motion.h1)`
   font-family: "Lobster", cursive;
-  font-size: 48px;
+  font-size: 50px;
   margin: 0;
   font-weight: 400;
   ${(props) =>
@@ -89,7 +109,6 @@ const Title = styled(motion.h1)`
       ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
       : `color: ${props.color};`}
 `;
-
 const PhotoFrame = styled(motion.div)`
   width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
   height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
@@ -102,7 +121,6 @@ const PhotoFrame = styled(motion.div)`
     object-fit: cover;
   }
 `;
-
 const GoldText = styled(motion.p)`
   color: #c4a74f;
   margin: 2px 0;
@@ -111,29 +129,12 @@ const GoldText = styled(motion.p)`
   font-weight: ${(props) => (props.bold ? "700" : "400")};
 `;
 
-// CSS Buat Tombol Musik
-const MusicButton = styled.div`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  background: ${(props) => props.btnGrad};
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 999;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-`;
-
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
 
   const formatTglIndo = (str) => {
@@ -175,24 +176,6 @@ export default function App() {
     }
   }, []);
 
-  const handleRSVP = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const formData = new URLSearchParams(new FormData(e.target)).toString();
-    try {
-      await fetch(`${GAS_URL}?${formData}`, {
-        method: "POST",
-        mode: "no-cors",
-      });
-      alert("Terima kasih! Konfirmasi Anda telah tersimpan.");
-      setShowForm(false);
-    } catch (e) {
-      alert("Gagal mengirim.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const toggleMusic = () => {
     if (isPlaying) {
       audioRef.current.pause();
@@ -200,6 +183,24 @@ export default function App() {
       audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
+  };
+
+  const handleRSVP = async (e) => {
+    e.preventDefault();
+    setLoadingForm(true);
+    const formData = new URLSearchParams(new FormData(e.target)).toString();
+    try {
+      await fetch(`${GAS_URL}?${formData}`, {
+        method: "POST",
+        mode: "no-cors",
+      });
+      alert("Terima kasih! Konfirmasi kehadiran Anda telah tersimpan.");
+      setShowForm(false);
+    } catch (e) {
+      alert("Maaf, terjadi kesalahan.");
+    } finally {
+      setLoadingForm(false);
+    }
   };
 
   if (!data)
@@ -213,18 +214,10 @@ export default function App() {
     );
 
   const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
-
-  // Variasi Animasi (Staggered Children)
   const containerVariants = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15, // Jeda antar elemen muncul
-      },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
@@ -233,17 +226,24 @@ export default function App() {
   return (
     <>
       <GlobalStyle />
-      {/* PAKE LAGU ADEM ISLAMI */}
-      <audio
-        ref={audioRef}
-        loop
-        src="https://assets.mixkit.co/music/preview/mixkit-beautiful-instrumental-music-for-meditation-and-yoga-481.mp3"
-      ></audio>
+      <audio ref={audioRef} loop src="/asset/music.mp3"></audio>
 
-      <MusicButton btnGrad={style.btnGrad} onClick={toggleMusic}>
-        <span style={{ fontSize: "24px", color: "#fff" }}>
-          {isPlaying ? "🔇" : "🔊"}
-        </span>
+      <MusicButton
+        btnGrad={style.btnGrad}
+        playing={isPlaying}
+        onClick={toggleMusic}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+      >
+        {isPlaying ? (
+          <svg viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        )}
       </MusicButton>
 
       <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
@@ -282,14 +282,13 @@ export default function App() {
             />
           </PhotoFrame>
 
-          <div style={{ margin: "10px 0" }}>
-            <GoldText variants={itemVariants} bold size="19px">
+          <div style={{ margin: "15px 0" }}>
+            <GoldText variants={itemVariants} bold size="20px">
               {formatTglIndo(data.tanggal)}
             </GoldText>
-            <GoldText variants={itemVariants} bold size="24px">
+            <GoldText variants={itemVariants} bold size="26px">
               ({cleanJam(data.jam)} WIB)
             </GoldText>
-            {/* LOKASI GEDE DAN BOLD */}
             <GoldText
               variants={itemVariants}
               bold
@@ -300,7 +299,7 @@ export default function App() {
             </GoldText>
           </div>
 
-          <motion.div variants={itemVariants} style={{ margin: "25px 0" }}>
+          <motion.div variants={itemVariants} style={{ margin: "30px 0" }}>
             <GoldText size="14px">Kepada Yth:</GoldText>
             <GoldText bold size="28px">
               {to}
@@ -312,7 +311,7 @@ export default function App() {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "12px",
+              gap: "15px",
               alignItems: "center",
             }}
           >
@@ -325,7 +324,7 @@ export default function App() {
               <div
                 style={{
                   width: "280px",
-                  height: "52px",
+                  height: "55px",
                   borderRadius: "50px",
                   border: `2px solid ${style.gold}`,
                   display: "flex",
@@ -343,7 +342,7 @@ export default function App() {
               onClick={() => setShowForm(true)}
               style={{
                 width: "280px",
-                height: "52px",
+                height: "55px",
                 borderRadius: "50px",
                 border: "none",
                 background: style.btnGrad,
@@ -366,7 +365,6 @@ export default function App() {
           style={{ width: "100%", position: "absolute", bottom: 0, left: 0 }}
         />
 
-        {/* POPUP FORM BALIK LAGI */}
         <AnimatePresence>
           {showForm && (
             <motion.div
@@ -396,7 +394,7 @@ export default function App() {
                   maxWidth: "350px",
                   padding: "30px",
                   borderRadius: "25px",
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
                 }}
               >
                 <GoldText
@@ -461,10 +459,10 @@ export default function App() {
                   />
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loadingForm}
                     style={{
                       width: "100%",
-                      height: "50px",
+                      height: "55px",
                       borderRadius: "50px",
                       border: "none",
                       background: style.btnGrad,
@@ -474,7 +472,7 @@ export default function App() {
                       cursor: "pointer",
                     }}
                   >
-                    {loading ? "Mengirim..." : "Kirim Sekarang"}
+                    {loadingForm ? "Mengirim..." : "Kirim Sekarang"}
                   </button>
                 </form>
               </motion.div>
