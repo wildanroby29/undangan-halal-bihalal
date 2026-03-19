@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
+// GANTI PAKE LINK DEPLOY TERBARU LU
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwBPp1u3ct1MhQBoscjQMIgYFYt2ZTvQt4wl6vRUcAjPyBVhsB-H2K06d17nHy17TCd/exec";
+  "https://script.google.com/macros/s/AKfycbw6t4lwTB44zeqcAQhVaV1KHRZwb30QCupVB1HhiVQWf1M3cr1RCJn1t8qw6nlXFZGR_Q/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -21,14 +22,42 @@ const DAFTAR_TEMA = {
   },
 };
 
+const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
 const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } `;
-const musicWave = keyframes` 0%, 100% { height: 4px; } 50% { height: 16px; } `;
 
 const GlobalStyle = createGlobalStyle`
-  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(
-    props
-  ) => props.tema.bg}; }
-  * { font-style: normal !important; box-sizing: border-box; font-family: sans-serif; outline: none !important; } 
+  @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
+  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; }
+  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; } 
+`;
+
+const LoadingScreen = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fdfbf7;
+  color: #c4a74f;
+  .logo {
+    font-family: "Lobster", cursive;
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+  .bar {
+    width: 180px;
+    height: 4px;
+    background: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #eee 25%, #c4a74f 50%, #eee 75%);
+    background-size: 200% 100%;
+    animation: ${shimmer} 1.5s infinite;
+  }
 `;
 
 const Container = styled.div`
@@ -40,9 +69,9 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: ${(props) => props.bg};
   background-image: url(${(props) => props.bgImg});
   background-size: cover;
-  background-position: center;
 `;
 const HeaderImg = styled(motion.img)`
   width: 100%;
@@ -58,77 +87,32 @@ const FooterImg = styled(motion.img)`
   left: 0;
   z-index: 1;
 `;
-const MusicWrapper = styled.div`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-const WaveBar = styled.div`
-  width: 3px;
-  background: ${(props) => props.color};
-  border-radius: 2px;
-  animation: ${musicWave} ${(props) => props.dur} ease-in-out infinite;
-  animation-play-state: ${(props) => (props.playing ? "running" : "paused")};
-`;
-const MusicToggle = styled(motion.button)`
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: ${(props) => props.tema.gold};
-  border: none;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-`;
-const TopSection = styled(motion.div)`
-  position: absolute;
-  top: 160px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 10;
-  animation: ${floating} 4s ease-in-out infinite;
-`;
-const Title = styled.h1`
-  font-family: "Lobster", cursive;
-  font-size: 50px;
-  margin: 5px 0;
-  text-align: center;
-  ${(props) =>
-    props.temaActive === "hijau"
-      ? `background: ${props.titleGrad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
-      : `color: ${props.color};`}
-`;
-const GoldText = styled.p`
-  color: ${(props) => props.tema.gold};
-  margin: 0;
-  text-align: center;
-  font-size: ${(props) => props.size || "18px"};
-  font-weight: ${(props) => props.weight || "400"};
-`;
-const MainContent = styled(motion.div)`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 5;
-  padding-top: 320px;
+
+const Content = styled(motion.div)`
+  padding-top: 160px;
   padding-bottom: 120px;
+  z-index: 5;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
-// FOTO TANPA BORDER (BIAR GA JIJI)
+const Title = styled.h1`
+  font-family: "Lobster", cursive;
+  font-size: 48px;
+  margin: 5px 0;
+  font-weight: 400;
+  ${(props) =>
+    props.tema === "hijau"
+      ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
+      : `color: ${props.color};`}
+`;
+
 const PhotoFrame = styled(motion.div)`
-  width: ${(props) => (props.tema === "hijau" ? "204px" : "320px")};
-  height: ${(props) => (props.tema === "hijau" ? "226px" : "180px")};
-  margin-bottom: 30px;
+  width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
+  height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
+  margin: 20px 0;
   border-radius: 12px;
   overflow: hidden;
   animation: ${floating} 5s ease-in-out infinite;
@@ -139,6 +123,13 @@ const PhotoFrame = styled(motion.div)`
   }
 `;
 
+const GoldText = styled.p`
+  color: #c4a74f;
+  margin: 0;
+  text-align: center;
+  font-size: ${(props) => props.size || "16px"};
+  font-weight: ${(props) => (props.bold ? "700" : "400")};
+`;
 const ActionButton = styled(motion.button)`
   width: 280px;
   height: 55px;
@@ -147,54 +138,9 @@ const ActionButton = styled(motion.button)`
   color: #fff;
   font-size: 16px;
   font-weight: bold;
-  background: ${(props) => props.tema.btnGrad};
-  box-shadow: 0 5px 15px ${(props) => props.tema.shadow};
+  background: ${(props) => props.btnGrad};
   cursor: pointer;
-`;
-const MapsButton = styled.a`
-  width: 280px;
-  height: 55px;
-  border-radius: 50px;
-  border: 2px solid ${(props) => props.tema.gold};
-  color: ${(props) => props.tema.gold};
-  background: white;
-  text-decoration: none;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 15px;
-`;
-const Overlay = styled(motion.div)`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-const Modal = styled(motion.div)`
-  width: 90%;
-  max-width: 350px;
-  background: white;
-  border-radius: 20px;
-  padding: 25px;
-  border: 2px solid ${(props) => props.tema.gold};
-`;
-const Input = styled.input`
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-`;
-const Select = styled.select`
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  margin-top: 10px;
 `;
 
 export default function App() {
@@ -202,24 +148,25 @@ export default function App() {
   const [to, setTo] = useState("Tamu Undangan");
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
 
-  const formatTgl = (str) => {
-    if (!str || !str.includes("T")) return str;
-    return new Date(str).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  // FIX JAM: Cuma tampil (19:00)
+  const formatJamClean = (str) => {
+    if (!str) return "";
+    if (str.toString().includes("T")) {
+      const d = new Date(str);
+      return `(${d.getHours().toString().padStart(2, "0")}:${d
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")})`;
+    }
+    return `(${str})`;
   };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    const n = params.get("to");
-    if (n) setTo(decodeURIComponent(n));
+    const tamu = params.get("to");
+    if (tamu) setTo(decodeURIComponent(tamu));
     if (id) {
       fetch(`${GAS_URL}?id=${id}`)
         .then((res) => res.json())
@@ -229,21 +176,18 @@ export default function App() {
     }
   }, []);
 
-  const toggleMusic = () => {
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(() => {});
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleFormSubmit = async (e) => {
+  const handleRSVP = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const formData = new FormData(e.target);
+    const formData = new URLSearchParams(new FormData(e.target)).toString();
     try {
-      await fetch(GAS_URL, { method: "POST", body: formData, mode: "no-cors" });
+      await fetch(`${GAS_URL}?${formData}`, {
+        method: "POST",
+        mode: "no-cors",
+      });
       alert("Konfirmasi Berhasil!");
       setShowForm(false);
-    } catch (error) {
+    } catch (e) {
       alert("Gagal kirim.");
     } finally {
       setLoading(false);
@@ -252,72 +196,35 @@ export default function App() {
 
   if (!data)
     return (
-      <div
-        style={{
-          height: "100vh",
-          background: "#000",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        Memuat Undangan...
-      </div>
+      <LoadingScreen>
+        <div className="logo">Undangan</div>
+        <div className="bar">
+          <div className="progress" />
+        </div>
+      </LoadingScreen>
     );
 
   const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
 
   return (
     <>
-      <GlobalStyle tema={style} />
-      <Container tema={style} bgImg={`/asset/pattern-${data.tema}.png`}>
-        <audio ref={audioRef} loop src="/asset/music.mp3" />
-        <MusicWrapper>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              gap: "2px",
-              height: "16px",
-            }}
-          >
-            <WaveBar color={style.gold} dur="0.6s" playing={isPlaying} />
-            <WaveBar color={style.gold} dur="0.8s" playing={isPlaying} />
-            <WaveBar color={style.gold} dur="0.5s" playing={isPlaying} />
-          </div>
-          <MusicToggle onClick={toggleMusic} tema={style}>
-            {isPlaying ? "⏸" : "🎵"}
-          </MusicToggle>
-        </MusicWrapper>
-
+      <GlobalStyle />
+      <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
         <HeaderImg
           src={`/asset/header-${data.tema}.png`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ y: -50 }}
+          animate={{ y: 0 }}
         />
 
-        <TopSection
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <GoldText size="26px" tema={style}>
-            Undangan
-          </GoldText>
-          <Title
-            tema={style}
-            temaActive={data.tema}
-            titleGrad={style.titleGrad}
-            color={style.gold}
-          >
+        <Content initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <GoldText size="22px">Undangan</GoldText>
+          <Title tema={data.tema} color={style.gold} grad={style.titleGrad}>
             Halal Bihalal
           </Title>
-          <GoldText size="16px" tema={style}>
+          <GoldText size="14px" style={{ letterSpacing: "2px" }}>
             {data.instansi}
           </GoldText>
-        </TopSection>
 
-        <MainContent initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <PhotoFrame tema={data.tema}>
             <img
               src={data.fotourl || `/asset/foto-${data.tema}.png`}
@@ -325,67 +232,88 @@ export default function App() {
             />
           </PhotoFrame>
 
-          <GoldText weight="bold" tema={style}>
-            {formatTgl(data.tanggal)}
-          </GoldText>
-          <GoldText size="14px" tema={style}>
-            {data.jam}
-          </GoldText>
-          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>
-            {data.lokasi}
-          </GoldText>
+          <div style={{ marginBottom: "30px" }}>
+            <GoldText bold size="18px">
+              {data.tanggal}
+            </GoldText>
+            <GoldText bold size="18px">
+              {formatJamClean(data.jam)}
+            </GoldText>
+            <GoldText size="14px">📍 {data.lokasi}</GoldText>
+          </div>
 
-          <GoldText size="14px" tema={style}>
-            Kpd Yth:
-          </GoldText>
-          <GoldText
-            size="22px"
-            weight="bold"
-            tema={style}
-            style={{ marginBottom: "30px" }}
-          >
+          <GoldText size="14px">Kepada Yth:</GoldText>
+          <GoldText bold size="26px" style={{ marginBottom: "30px" }}>
             {to}
           </GoldText>
 
-          {/* MAPS AMBIL DARI SHEET */}
-          <MapsButton href={data.mapsurl} target="_blank" tema={style}>
-            📍 Buka Lokasi Maps
-          </MapsButton>
+          <a
+            href={data.mapsurl}
+            target="_blank"
+            rel="noreferrer"
+            style={{ textDecoration: "none", marginBottom: "10px" }}
+          >
+            <div
+              style={{
+                width: "280px",
+                height: "55px",
+                borderRadius: "50px",
+                border: `2px solid ${style.gold}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: style.gold,
+                fontWeight: "bold",
+              }}
+            >
+              📍 Lokasi Maps
+            </div>
+          </a>
           <ActionButton
+            btnGrad={style.btnGrad}
             onClick={() => setShowForm(true)}
-            tema={style}
-            whileTap={{ scale: 0.95 }}
           >
             Konfirmasi Kehadiran
           </ActionButton>
-        </MainContent>
+        </Content>
 
-        <FooterImg src={`/asset/footer-${data.tema}.png`} />
+        <FooterImg
+          src={`/asset/footer-${data.tema}.png`}
+          initial={{ y: 50 }}
+          animate={{ y: 0 }}
+        />
 
         <AnimatePresence>
           {showForm && (
-            <Overlay
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.85)",
+                zIndex: 999,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
               onClick={() => setShowForm(false)}
             >
-              <Modal
-                tema={style}
-                onClick={(e) => e.stopPropagation()}
-                initial={{ scale: 0.8 }}
+              <motion.div
+                initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
+                exit={{ scale: 0.5 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "#fff",
+                  width: "90%",
+                  maxWidth: "350px",
+                  padding: "25px",
+                  borderRadius: "20px",
+                }}
               >
-                <GoldText
-                  weight="bold"
-                  size="20px"
-                  style={{ marginBottom: "15px" }}
-                  tema={style}
-                >
+                <GoldText bold size="20px" style={{ marginBottom: "15px" }}>
                   Form Kehadiran
                 </GoldText>
-                <form onSubmit={handleFormSubmit}>
-                  {/* ID DARI URL BIAR MASUK KE BARIS YG BENER DI SHEET */}
+                <form onSubmit={handleRSVP}>
                   <input
                     type="hidden"
                     name="id"
@@ -393,48 +321,57 @@ export default function App() {
                       "id"
                     )}
                   />
-                  <Input
+                  <input
                     name="nama"
                     defaultValue={to}
                     required
-                    placeholder="Nama Lengkap"
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      margin: "8px 0",
+                      border: "1px solid #ddd",
+                      borderRadius: "8px",
+                    }}
                   />
-                  <Select name="status" required>
-                    <option value="">-- Pilih Kehadiran --</option>
+                  <select
+                    name="status"
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      margin: "8px 0",
+                      border: "1px solid #ddd",
+                      borderRadius: "8px",
+                    }}
+                  >
                     <option value="Hadir">Hadir</option>
                     <option value="Berhalangan">Berhalangan</option>
-                  </Select>
-                  <Input
+                  </select>
+                  <input
                     name="jumlah"
                     type="number"
-                    required
                     placeholder="Jumlah Orang"
-                    min="1"
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      margin: "8px 0",
+                      border: "1px solid #ddd",
+                      borderRadius: "8px",
+                    }}
                   />
                   <ActionButton
                     as="button"
                     type="submit"
+                    btnGrad={style.btnGrad}
                     disabled={loading}
-                    style={{ width: "100%", height: "45px", marginTop: "10px" }}
-                    tema={style}
+                    style={{ width: "100%", height: "45px" }}
                   >
-                    {loading ? "Mengirim..." : "Kirim Sekarang"}
+                    {loading ? "Mengirim..." : "Kirim Konfirmasi"}
                   </ActionButton>
-                  <p
-                    onClick={() => setShowForm(false)}
-                    style={{
-                      textAlign: "center",
-                      cursor: "pointer",
-                      color: "#999",
-                      marginTop: "15px",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Batal
-                  </p>
                 </form>
-              </Modal>
-            </Overlay>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </Container>
