@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// --- CONFIG & DATA ---
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
@@ -22,12 +21,10 @@ const DAFTAR_TEMA = {
   },
 };
 
-// --- ANIMATIONS ---
+const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } `;
 const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
 const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(196, 167, 79, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0); } `;
-const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } `;
 
-// --- STYLED COMPONENTS ---
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: #fff; }
@@ -158,7 +155,6 @@ const MusicButton = styled(motion.div)`
   }
 `;
 
-// --- MAIN APP COMPONENT ---
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
@@ -169,9 +165,8 @@ export default function App() {
   const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
 
-  // UTILS
   const getDriveUrl = (url) => {
-    if (!url) return null;
+    if (!url || url.trim() === "") return null;
     if (
       url.includes("ibb.co") ||
       url.includes("postimg") ||
@@ -182,7 +177,7 @@ export default function App() {
       const fileId =
         url.split("/d/")[1]?.split("/")[0] ||
         url.split("id=")[1]?.split("&")[0];
-      return `https://lh3.googleusercontent.com/d/$${fileId}=s1000`;
+      return `http://googleusercontent.com/profile/picture/3{fileId}=s1000`;
     }
     return url;
   };
@@ -302,16 +297,12 @@ export default function App() {
                 {data ? data.instansi : "AKSARA STORE"}
               </GoldText>
 
-              <PhotoFrame variants={itemVariants}>
-                <img
-                  src={
-                    data
-                      ? getDriveUrl(data.fotourl)
-                      : `/asset/foto-${urlTema}.png`
-                  }
-                  alt="Instansi"
-                />
-              </PhotoFrame>
+              {/* FOTO COVER: CUMA MUNCUL KALO ADA URL NYA */}
+              {data && getDriveUrl(data.fotourl) && (
+                <PhotoFrame variants={itemVariants}>
+                  <img src={getDriveUrl(data.fotourl)} alt="Instansi" />
+                </PhotoFrame>
+              )}
 
               <motion.div variants={itemVariants} style={{ marginTop: "10px" }}>
                 <GoldText size="14px">Kepada Yth:</GoldText>
@@ -359,15 +350,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {isOpen && !data && (
-        <LoadingScreen>
-          <div className="logo">Aksara Store</div>
-          <div className="bar">
-            <div className="progress" />
-          </div>
-        </LoadingScreen>
-      )}
-
       {isOpen && data && (
         <>
           <MusicButton
@@ -397,7 +379,6 @@ export default function App() {
               src={`/asset/header-${data.tema}.png`}
               style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
             />
-
             <Content
               variants={containerVariants}
               initial="hidden"
@@ -422,14 +403,12 @@ export default function App() {
                 {data.instansi}
               </GoldText>
 
-              <PhotoFrame variants={itemVariants}>
-                <img
-                  src={
-                    getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`
-                  }
-                  alt="Acara"
-                />
-              </PhotoFrame>
+              {/* FOTO ISI: CUMA MUNCUL KALO ADA URL NYA */}
+              {getDriveUrl(data.fotourl) && (
+                <PhotoFrame variants={itemVariants}>
+                  <img src={getDriveUrl(data.fotourl)} alt="Acara" />
+                </PhotoFrame>
+              )}
 
               <motion.div variants={itemVariants} style={{ margin: "15px 0" }}>
                 <GoldText bold size="22px">
@@ -503,7 +482,6 @@ export default function App() {
                 </motion.button>
               </motion.div>
             </Content>
-
             <motion.img
               initial={{ y: 100 }}
               animate={{ y: 0 }}
@@ -529,7 +507,7 @@ export default function App() {
                     zIndex: 1000,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
+                    justifyCenter: "center",
                   }}
                   onClick={() => setShowForm(false)}
                 >
@@ -544,7 +522,7 @@ export default function App() {
                       maxWidth: "350px",
                       padding: "30px",
                       borderRadius: "25px",
-                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      margin: "auto",
                     }}
                   >
                     <GoldText
@@ -633,7 +611,6 @@ export default function App() {
                           background: style.btnGrad,
                           color: "#fff",
                           fontWeight: "bold",
-                          cursor: "pointer",
                         }}
                       >
                         {loadingForm ? "Mengirim..." : "Kirim Konfirmasi"}
