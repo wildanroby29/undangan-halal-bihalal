@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
+// --- CONFIG & DATA ---
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
@@ -21,10 +22,12 @@ const DAFTAR_TEMA = {
   },
 };
 
+// --- ANIMATIONS ---
 const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } `;
 const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
 const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(196, 167, 79, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0); } `;
 
+// --- STYLED COMPONENTS ---
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: #fff; }
@@ -105,35 +108,6 @@ const GoldText = styled(motion.p)`
   font-weight: ${(props) => (props.bold ? "700" : "400")};
 `;
 
-const LoadingScreen = styled.div`
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #fdfbf7;
-  color: #c4a74f;
-  .logo {
-    font-family: "Lobster", cursive;
-    font-size: 32px;
-    margin-bottom: 20px;
-  }
-  .bar {
-    width: 150px;
-    height: 4px;
-    background: #eee;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .progress {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #eee 25%, #c4a74f 50%, #eee 75%);
-    background-size: 200% 100%;
-    animation: ${shimmer} 1.5s infinite;
-  }
-`;
-
 const MusicButton = styled(motion.div)`
   position: fixed;
   bottom: 25px;
@@ -155,6 +129,7 @@ const MusicButton = styled(motion.div)`
   }
 `;
 
+// --- MAIN APP ---
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
@@ -163,6 +138,7 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
+  const [photoLoaded, setPhotoLoaded] = useState(false);
   const audioRef = useRef(null);
 
   const getDriveUrl = (url) => {
@@ -177,7 +153,7 @@ export default function App() {
       const fileId =
         url.split("/d/")[1]?.split("/")[0] ||
         url.split("id=")[1]?.split("&")[0];
-      return `http://googleusercontent.com/profile/picture/3{fileId}=s1000`;
+      return `https://lh3.googleusercontent.com/u/0/d/${fileId}=s1000`;
     }
     return url;
   };
@@ -297,41 +273,52 @@ export default function App() {
                 {data ? data.instansi : "AKSARA STORE"}
               </GoldText>
 
-              {/* FOTO COVER: CUMA MUNCUL KALO ADA URL NYA */}
               {data && getDriveUrl(data.fotourl) && (
                 <PhotoFrame variants={itemVariants}>
-                  <img src={getDriveUrl(data.fotourl)} alt="Instansi" />
+                  <img
+                    src={getDriveUrl(data.fotourl)}
+                    alt="Instansi"
+                    onLoad={() => setPhotoLoaded(true)}
+                  />
                 </PhotoFrame>
               )}
 
-              <motion.div variants={itemVariants} style={{ marginTop: "10px" }}>
-                <GoldText size="14px">Kepada Yth:</GoldText>
-                <GoldText bold size="28px">
-                  {to}
-                </GoldText>
-              </motion.div>
-
-              <motion.button
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleOpenInvitation}
-                style={{
-                  width: "280px",
-                  height: "55px",
-                  borderRadius: "50px",
-                  border: "none",
-                  background: styleUrl.btnGrad,
-                  color: "#fff",
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  marginTop: "30px",
-                  boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
-                }}
-              >
-                Buka Undangan
-              </motion.button>
+              <AnimatePresence>
+                {(!data || !getDriveUrl(data.fotourl) || photoLoaded) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                  >
+                    <div style={{ marginTop: "10px" }}>
+                      <GoldText size="14px">Kepada Yth:</GoldText>
+                      <GoldText bold size="28px">
+                        {to}
+                      </GoldText>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleOpenInvitation}
+                      style={{
+                        width: "280px",
+                        height: "55px",
+                        borderRadius: "50px",
+                        border: "none",
+                        background: styleUrl.btnGrad,
+                        color: "#fff",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        marginTop: "30px",
+                        boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      Buka Undangan
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Content>
 
             <motion.img
@@ -403,7 +390,6 @@ export default function App() {
                 {data.instansi}
               </GoldText>
 
-              {/* FOTO ISI: CUMA MUNCUL KALO ADA URL NYA */}
               {getDriveUrl(data.fotourl) && (
                 <PhotoFrame variants={itemVariants}>
                   <img src={getDriveUrl(data.fotourl)} alt="Acara" />
@@ -507,7 +493,7 @@ export default function App() {
                     zIndex: 1000,
                     display: "flex",
                     alignItems: "center",
-                    justifyCenter: "center",
+                    justifyContent: "center",
                   }}
                   onClick={() => setShowForm(false)}
                 >
@@ -544,12 +530,10 @@ export default function App() {
                             method: "POST",
                             mode: "no-cors",
                           });
-                          alert(
-                            "Terima kasih! Konfirmasi Anda telah tersimpan."
-                          );
+                          alert("Tersimpan!");
                           setShowForm(false);
                         } catch {
-                          alert("Maaf, terjadi kesalahan.");
+                          alert("Gagal!");
                         } finally {
                           setLoadingForm(false);
                         }
