@@ -3,17 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
 // ==========================================
-// 1. CONFIG DATA KLIEN (Ganti di Sini Aja)
+// 1. LINK GAS LU (Link yang lu kasih tadi)
 // ==========================================
-const CONFIG_CLIENT = {
-  instansi: "Nama Instansi / Keluarga",
-  tanggal: "Minggu, 12 April 2026",
-  jam: "10.00 WIB - Selesai",
-  lokasi: "Alamat Lengkap Lu Di Sini",
-  mapsUrl: "https://maps.app.goo.gl/7gyMqs8n5Ne3i9oaA",
-  scriptRSVP:
-    "https://script.google.com/macros/s/AKfycbym7YKzkxd4SUsE-ybIzj5SwLh7sUnIYnjBE4IB7nN_usc6zRHEaTnsfxbQ3pIjMVnm6Q/exec",
-};
+const GAS_URL = "https://script.google.com/macros/s/AKfycbw5QWbHV3dliRS1Pnp9vo054B3y1gddA4KmrqkQl_6PgJ_McZpgZgbY6TNgHEciIV2EOg/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -31,7 +23,6 @@ const DAFTAR_TEMA = {
   },
 };
 
-// --- ANIMASI ---
 const floating = keyframes`
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -44,400 +35,174 @@ const musicWave = keyframes`
 `;
 
 const GlobalStyle = createGlobalStyle`
-  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(
-    props
-  ) => props.tema.bg}; }
+  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(props) => props.tema.bg}; }
   * { font-style: normal !important; box-sizing: border-box; font-family: sans-serif; outline: none !important; } 
 `;
 
-// --- STYLED COMPONENTS ---
 const Container = styled.div`
-  width: 100%;
-  max-width: 430px;
-  min-height: 100vh;
-  margin: 0 auto;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-image: url(${(props) => props.bgImg});
-  background-size: cover;
-  background-position: center;
+  width: 100%; max-width: 430px; min-height: 100vh; margin: 0 auto; position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  background-image: url(${(props) => props.bgImg}); background-size: cover; background-position: center;
 `;
 
-const HeaderImg = styled(motion.img)`
-  width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-`;
+const HeaderImg = styled(motion.img)` width: 100%; position: absolute; top: 0; left: 0; z-index: 1; `;
+const FooterImg = styled(motion.img)` width: 100%; position: absolute; bottom: 0; left: 0; z-index: 1; `;
 
-const FooterImg = styled(motion.img)`
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-`;
-
-const MusicWrapper = styled.div`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
+const MusicWrapper = styled.div` position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; align-items: center; gap: 8px; `;
 const WaveBar = styled.div`
-  width: 3px;
-  background: ${(props) => props.color};
-  border-radius: 2px;
+  width: 3px; background: ${(props) => props.color}; border-radius: 2px;
   animation: ${musicWave} ${(props) => props.dur} ease-in-out infinite;
   animation-play-state: ${(props) => (props.playing ? "running" : "paused")};
 `;
 
 const MusicToggle = styled(motion.button)`
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: ${(props) => props.tema.gold};
-  border: none;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 45px; height: 45px; border-radius: 50%; background: ${(props) => props.tema.gold};
+  border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 `;
 
 const TopSection = styled(motion.div)`
-  position: absolute;
-  top: 160px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 10;
+  position: absolute; top: 160px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 10;
   animation: ${floating} 4s ease-in-out infinite;
 `;
 
 const Title = styled.h1`
-  font-family: "Lobster", cursive;
-  font-size: 50px;
-  margin: 5px 0;
-  text-align: center;
-  ${(props) =>
-    props.temaActive === "hijau"
-      ? `background: ${props.titleGrad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
-      : `color: ${props.color};`}
+  font-family: 'Lobster', cursive; font-size: 50px; margin: 5px 0; text-align: center; font-weight: 400;
+  ${(props) => props.temaActive === "hijau" ? `background: ${props.titleGrad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;` : `color: ${props.color};`}
 `;
 
 const GoldText = styled.p`
-  color: ${(props) => props.tema.gold};
-  margin: 0;
-  text-align: center;
-  font-size: ${(props) => props.size || "18px"};
-  font-weight: ${(props) => props.weight || "400"};
-`;
-
-const MainContent = styled(motion.div)`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 5;
-  padding-top: 320px;
-  padding-bottom: 120px;
+  color: ${(props) => props.tema.gold}; margin: 0; text-align: center;
+  font-size: ${(props) => props.size || "18px"}; font-weight: ${(props) => props.weight || "400"};
 `;
 
 const PhotoFrame = styled(motion.div)`
   width: ${(props) => (props.tema === "hijau" ? "204px" : "320px")};
   height: ${(props) => (props.tema === "hijau" ? "226px" : "180px")};
-  margin-bottom: 30px;
-  border-radius: 12px;
-  overflow: hidden;
+  margin-bottom: 30px; border-radius: 12px; overflow: hidden;
   animation: ${floating} 5s ease-in-out infinite;
-  /* STROKE EMAS SUDAH DIHAPUS DI SINI */
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const ActionButton = styled(motion.button)`
-  width: 280px;
-  height: 55px;
-  border-radius: 50px;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
-  background: ${(props) => props.tema.btnGrad};
-  box-shadow: 0 5px 15px ${(props) => props.tema.shadow};
-`;
-
-const MapsButton = styled.a`
-  width: 280px;
-  height: 55px;
-  border-radius: 50px;
-  border: 2px solid ${(props) => props.tema.gold};
-  color: ${(props) => props.tema.gold};
-  background: white;
-  text-decoration: none;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 15px;
-`;
-
-const Overlay = styled(motion.div)`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Modal = styled(motion.div)`
-  width: 90%;
-  max-width: 350px;
-  background: white;
-  border-radius: 20px;
-  padding: 25px;
-  border: 2px solid ${(props) => props.tema.gold};
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  img { width: 100%; height: 100%; object-fit: cover; }
 `;
 
 export default function App() {
+  const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
-  const [tema, setTema] = useState("putih");
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const n = params.get("to");
-    const t = params.get("theme");
-    if (n) setTo(decodeURIComponent(n));
-    if (t && DAFTAR_TEMA[t]) setTema(t);
+    const clientId = params.get("id");
+    const name = params.get("to");
+    if (name) setTo(decodeURIComponent(name));
+
+    if (clientId) {
+      fetch(`${GAS_URL}?id=${clientId}`)
+        .then(res => res.json())
+        .then(res => {
+          if (!res.error) setData(res);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const toggleMusic = () => {
     if (isPlaying) audioRef.current.pause();
-    else {
-      audioRef.current
-        .play()
-        .catch(() => console.log("Interaksi user diperlukan"));
-    }
+    else audioRef.current.play().catch(() => {});
     setIsPlaying(!isPlaying);
   };
 
-  const handleFormSubmit = async (e) => {
+  const handleRSVP = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSending(true);
     const formData = new FormData(e.target);
+    // Kita kirim ke GAS yang sama, GAS harus bisa handle POST buat RSVP
     try {
-      await fetch(CONFIG_CLIENT.scriptRSVP, {
+      await fetch(GAS_URL, {
         method: "POST",
         body: formData,
         mode: "no-cors",
       });
-      alert("Konfirmasi Berhasil Terkirim!");
+      alert("Konfirmasi Terkirim! Terima kasih.");
       setShowForm(false);
-    } catch (error) {
-      alert("Gagal kirim data.");
+    } catch (err) {
+      alert("Gagal mengirim data.");
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
-  const style = DAFTAR_TEMA[tema];
+  if (loading) return <div style={{background: '#000', color: '#fff', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>Memuat Undangan...</div>;
+  if (!data) return <div style={{background: '#000', color: '#fff', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>ID Undangan Tidak Valid.</div>;
+
+  const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
 
   return (
     <>
       <GlobalStyle tema={style} />
-      <Container tema={style} bgImg={`/asset/pattern-${tema}.png`}>
+      <Container tema={style} bgImg={`/asset/pattern-${data.tema}.png`}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');`}</style>
         <audio ref={audioRef} loop src="/asset/music.mp3" />
 
         <MusicWrapper>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              gap: "2px",
-              height: "16px",
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "16px" }}>
             <WaveBar color={style.gold} dur="0.6s" playing={isPlaying} />
             <WaveBar color={style.gold} dur="0.8s" playing={isPlaying} />
             <WaveBar color={style.gold} dur="0.5s" playing={isPlaying} />
           </div>
-          <MusicToggle
-            onClick={toggleMusic}
-            whileTap={{ scale: 0.9 }}
-            tema={style}
-          >
-            {isPlaying ? "⏸" : "🎵"}
-          </MusicToggle>
+          <MusicToggle onClick={toggleMusic} tema={style}>{isPlaying ? "⏸" : "🎵"}</MusicToggle>
         </MusicWrapper>
 
-        <HeaderImg
-          src={`/asset/header-${tema}.png`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        />
+        <HeaderImg src={`/asset/header-${data.tema}.png`} />
 
-        <TopSection
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <GoldText size="26px" tema={style}>
-            Undangan
-          </GoldText>
-          <Title
-            tema={style}
-            temaActive={tema}
-            titleGrad={style.titleGrad}
-            color={style.gold}
-          >
-            Halal Bihalal
-          </Title>
-          <GoldText size="16px" tema={style}>
-            {CONFIG_CLIENT.instansi}
-          </GoldText>
+        <TopSection>
+          <GoldText size="26px" tema={style}>Undangan</GoldText>
+          <Title tema={style} temaActive={data.tema} titleGrad={style.titleGrad} color={style.gold}>Halal Bihalal</Title>
+          <GoldText size="16px" tema={style}>{data.instansi}</GoldText>
         </TopSection>
 
-        <MainContent initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <PhotoFrame tema={tema}>
-            <img src={`/asset/foto-${tema}.png`} alt="Acara" />
+        <div style={{ paddingTop: '320px', paddingBottom: '120px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 5 }}>
+          <PhotoFrame tema={data.tema}>
+            <img src={data.fotoUrl || `/asset/foto-${data.tema}.png`} alt="Acara" />
           </PhotoFrame>
 
-          <GoldText weight="bold" tema={style}>
-            {CONFIG_CLIENT.tanggal}
-          </GoldText>
-          <GoldText size="14px" tema={style}>
-            {CONFIG_CLIENT.jam}
-          </GoldText>
-          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>
-            {CONFIG_CLIENT.lokasi}
-          </GoldText>
+          <GoldText weight="bold" tema={style}>{data.tanggal}</GoldText>
+          <GoldText size="14px" tema={style}>{data.jam}</GoldText>
+          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>{data.lokasi}</GoldText>
 
-          <GoldText size="14px" tema={style}>
-            Kpd Yth:
-          </GoldText>
-          <GoldText
-            size="22px"
-            weight="bold"
-            tema={style}
-            style={{ marginBottom: "30px" }}
-          >
-            {to}
-          </GoldText>
+          <GoldText size="14px" tema={style}>Kpd Yth:</GoldText>
+          <GoldText size="22px" weight="bold" tema={style} style={{ marginBottom: "30px" }}>{to}</GoldText>
 
-          <MapsButton href={CONFIG_CLIENT.mapsUrl} target="_blank" tema={style}>
-            📍 Buka Lokasi Maps
-          </MapsButton>
-          <ActionButton
-            onClick={() => setShowForm(true)}
-            tema={style}
-            whileTap={{ scale: 0.95 }}
-          >
-            Konfirmasi Kehadiran
-          </ActionButton>
-        </MainContent>
+          <a href={data.mapsUrl} target="_blank" style={{ width: '280px', height: '55px', borderRadius: '50px', border: `2px solid ${style.gold}`, color: style.gold, background: 'white', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>📍 Lokasi Acara</a>
+          <button onClick={() => setShowForm(true)} style={{ width: '280px', height: '55px', borderRadius: '50px', border: 'none', color: '#fff', fontSize: '16px', fontWeight: 'bold', background: style.btnGrad, cursor: 'pointer' }}>Konfirmasi Kehadiran</button>
+        </div>
 
-        <FooterImg src={`/asset/footer-${tema}.png`} />
+        <FooterImg src={`/asset/footer-${data.tema}.png`} />
 
         <AnimatePresence>
           {showForm && (
-            <Overlay
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowForm(false)}
-            >
-              <Modal
-                tema={style}
-                onClick={(e) => e.stopPropagation()}
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-              >
-                <GoldText
-                  weight="bold"
-                  size="20px"
-                  style={{ marginBottom: "15px" }}
-                  tema={style}
-                >
-                  Form Kehadiran
-                </GoldText>
-                <form onSubmit={handleFormSubmit}>
-                  <Input
-                    name="nama"
-                    defaultValue={to}
-                    required
-                    placeholder="Nama Lengkap"
-                  />
-                  <Select name="kehadiran" required>
-                    <option value="">-- Pilih Kehadiran --</option>
+            <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <motion.div initial={{scale:0.8}} animate={{scale:1}} exit={{scale:0.8}} onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '350px', background: 'white', borderRadius: '20px', padding: '25px', border: `2px solid ${style.gold}` }}>
+                <GoldText weight="bold" size="20px" style={{ marginBottom: "15px" }} tema={style}>Form RSVP</GoldText>
+                <form onSubmit={handleRSVP}>
+                  <input name="nama" defaultValue={to} required style={{width:'100%', padding:'12px', margin:'8px 0', border:'1px solid #ddd', borderRadius:'8px'}} placeholder="Nama" />
+                  <select name="kehadiran" required style={{width:'100%', padding:'12px', margin:'8px 0', border:'1px solid #ddd', borderRadius:'8px'}}>
                     <option value="Hadir">Hadir</option>
-                    <option value="Tidak Hadir">Berhalangan</option>
-                  </Select>
-                  <Input
-                    name="jumlah"
-                    type="number"
-                    required
-                    placeholder="Jumlah Orang"
-                    min="1"
-                  />
-                  <ActionButton
-                    as="button"
-                    type="submit"
-                    disabled={loading}
-                    style={{ width: "100%", height: "45px", marginTop: "10px" }}
-                    tema={style}
-                  >
-                    {loading ? "Mengirim..." : "Kirim Sekarang"}
-                  </ActionButton>
-                  <p
-                    onClick={() => setShowForm(false)}
-                    style={{
-                      textAlign: "center",
-                      cursor: "pointer",
-                      color: "#999",
-                      marginTop: "15px",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Batal
-                  </p>
+                    <option value="Berhalangan">Berhalangan</option>
+                  </select>
+                  <input name="jumlah" type="number" min="1" placeholder="Jumlah Orang" required style={{width:'100%', padding:'12px', margin:'8px 0', border:'1px solid #ddd', borderRadius:'8px'}} />
+                  <button type="submit" disabled={sending} style={{ width: '100%', height: '45px', marginTop: '10px', background: style.btnGrad, border:'none', color:'#fff', borderRadius:'50px', fontWeight:'bold' }}>
+                    {sending ? "Mengirim..." : "Kirim Sekarang"}
+                  </button>
                 </form>
-              </Modal>
-            </Overlay>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </Container>
