@@ -12,7 +12,6 @@ const DAFTAR_TEMA = {
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     coverBg: "#fdfbf7",
-    textMain: "#333333",
   },
   hijau: {
     bg: "#042f2e",
@@ -20,7 +19,6 @@ const DAFTAR_TEMA = {
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
     coverBg: "#032524",
-    textMain: "#fef08a",
   },
 };
 
@@ -72,11 +70,9 @@ const WelcomeCover = styled(motion.div)`
   background-size: cover;
   background-position: center;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  text-align: center;
 `;
 
 const MusicButton = styled(motion.div)`
@@ -292,38 +288,15 @@ export default function App() {
           <WelcomeCover
             bg={styleUrl.coverBg}
             bgImg={`/asset/pattern-${urlTema}.png`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ y: "-100%", opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{
+              initial: { duration: 1.5, ease: "easeInOut" },
+              animate: { duration: 1.5, ease: "easeInOut" },
+              exit: { duration: 0.8, ease: "easeInOut" },
+            }}
           >
-            <GoldText size="20px">Undangan</GoldText>
-            <Title
-              tema={urlTema}
-              color={styleUrl.gold}
-              grad={styleUrl.titleGrad}
-            >
-              Halal Bihalal
-            </Title>
-            <GoldText
-              size="14px"
-              style={{
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                marginBottom: "40px",
-              }}
-            >
-              Aksara Store
-            </GoldText>
-            <GoldText size="16px">Kepada Yth:</GoldText>
-            <motion.p
-              style={{
-                fontSize: "30px",
-                fontWeight: "700",
-                color: styleUrl.textMain,
-                margin: "10px 0 40px",
-              }}
-            >
-              {to}
-            </motion.p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
