@@ -1,34 +1,30 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// GANTI PAKE LINK DEPLOY TERBARU LU
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbw6t4lwTB44zeqcAQhVaV1KHRZwb30QCupVB1HhiVQWf1M3cr1RCJn1t8qw6nlXFZGR_Q/exec";
+  "https://script.google.com/macros/s/AKfycbxIDZNjPrm26i4Z_-ephPl82oTyhOtrzZ6m8BiKVn-mGeqx0aJVqD-VPESvlCfc6FPH3Q/exec";
 
 const DAFTAR_TEMA = {
   putih: {
     bg: "#ffffff",
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
-    shadow: "rgba(150, 113, 2, 0.3)",
   },
   hijau: {
     bg: "#042f2e",
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
-    shadow: "rgba(196, 167, 79, 0.3)",
     titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
   },
 };
 
 const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
-const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } `;
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
-  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; }
-  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; } 
+  body { margin: 0; font-family: 'Poppins', sans-serif; background: #fff; overflow-x: hidden; }
+  * { font-style: normal !important; box-sizing: border-box; }
 `;
 
 const LoadingScreen = styled.div`
@@ -41,14 +37,15 @@ const LoadingScreen = styled.div`
   color: #c4a74f;
   .logo {
     font-family: "Lobster", cursive;
-    font-size: 36px;
+    font-size: 32px;
     margin-bottom: 20px;
   }
   .bar {
-    width: 180px;
+    width: 150px;
     height: 4px;
     background: #eee;
     border-radius: 10px;
+    position: relative;
     overflow: hidden;
   }
   .progress {
@@ -63,72 +60,27 @@ const LoadingScreen = styled.div`
 const Container = styled.div`
   width: 100%;
   max-width: 430px;
-  min-height: 100vh;
   margin: 0 auto;
+  min-height: 100vh;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
   background: ${(props) => props.bg};
-  background-image: url(${(props) => props.bgImg});
-  background-size: cover;
 `;
-const HeaderImg = styled(motion.img)`
-  width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-`;
-const FooterImg = styled(motion.img)`
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-`;
-
-const Content = styled(motion.div)`
-  padding-top: 160px;
-  padding-bottom: 120px;
-  z-index: 5;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const Title = styled.h1`
+const Title = styled(motion.h1)`
   font-family: "Lobster", cursive;
-  font-size: 48px;
-  margin: 5px 0;
+  font-size: 52px;
+  margin: 10px 0;
   font-weight: 400;
   ${(props) =>
     props.tema === "hijau"
       ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
       : `color: ${props.color};`}
 `;
-
-const PhotoFrame = styled(motion.div)`
-  width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
-  height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
-  margin: 20px 0;
-  border-radius: 12px;
-  overflow: hidden;
-  animation: ${floating} 5s ease-in-out infinite;
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const GoldText = styled.p`
+const GoldText = styled(motion.p)`
   color: #c4a74f;
-  margin: 0;
-  text-align: center;
   font-size: ${(props) => props.size || "16px"};
   font-weight: ${(props) => (props.bold ? "700" : "400")};
+  margin: 5px 0;
 `;
 const ActionButton = styled(motion.button)`
   width: 280px;
@@ -140,7 +92,6 @@ const ActionButton = styled(motion.button)`
   font-weight: bold;
   background: ${(props) => props.btnGrad};
   cursor: pointer;
-  margin-top: 10px;
 `;
 
 export default function App() {
@@ -149,24 +100,35 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // FIX JAM: Cuma tampil (19:00)
-  const formatJamClean = (str) => {
+  const formatTglIndo = (str) => {
     if (!str) return "";
-    if (str.toString().includes("T")) {
-      const d = new Date(str);
-      return `(${d.getHours().toString().padStart(2, "0")}:${d
+    const d = new Date(str);
+    if (isNaN(d.getTime())) return str;
+    return d.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const cleanJam = (jamStr) => {
+    if (!jamStr) return "";
+    if (jamStr.toString().includes("T")) {
+      const d = new Date(jamStr);
+      return `${d.getHours().toString().padStart(2, "0")}:${d
         .getMinutes()
         .toString()
-        .padStart(2, "0")})`;
+        .padStart(2, "0")}`;
     }
-    return `(${str})`;
+    return jamStr;
   };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    const tamu = params.get("to");
-    if (tamu) setTo(decodeURIComponent(tamu));
+    const t = params.get("to");
+    if (t) setTo(decodeURIComponent(t));
     if (id) {
       fetch(`${GAS_URL}?id=${id}`)
         .then((res) => res.json())
@@ -185,10 +147,10 @@ export default function App() {
         method: "POST",
         mode: "no-cors",
       });
-      alert("Konfirmasi Berhasil!");
+      alert("Terima kasih! Konfirmasi Anda telah tersimpan.");
       setShowForm(false);
     } catch (e) {
-      alert("Gagal kirim.");
+      alert("Gagal mengirim.");
     } finally {
       setLoading(false);
     }
@@ -206,86 +168,152 @@ export default function App() {
 
   const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
 
+  // Animasi Stagger
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.2 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+  };
+
   return (
     <>
       <GlobalStyle />
-      <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
-        <HeaderImg
-          src={`/asset/header-${data.tema}.png`}
-          initial={{ y: -50 }}
+      <Container bg={style.bg}>
+        <motion.img
+          initial={{ y: -100 }}
           animate={{ y: 0 }}
+          transition={{ duration: 1 }}
+          src={`/asset/header-${data.tema}.png`}
+          style={{ width: "100%" }}
         />
 
-        <Content initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <GoldText size="22px">Undangan</GoldText>
-          <Title tema={data.tema} color={style.gold} grad={style.titleGrad}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          style={{ padding: "20px" }}
+        >
+          <GoldText variants={itemVariants} size="22px">
+            Undangan
+          </GoldText>
+          <Title
+            variants={itemVariants}
+            tema={data.tema}
+            color={style.gold}
+            grad={style.titleGrad}
+          >
             Halal Bihalal
           </Title>
-          <GoldText size="14px" style={{ letterSpacing: "2px" }}>
+          <GoldText
+            variants={itemVariants}
+            size="14px"
+            style={{ textTransform: "uppercase", letterSpacing: "2px" }}
+          >
             {data.instansi}
           </GoldText>
 
-          <PhotoFrame tema={data.tema}>
+          <motion.div
+            variants={itemVariants}
+            style={{
+              width: "85%",
+              margin: "25px auto",
+              borderRadius: "15px",
+              overflow: "hidden",
+              boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
+            }}
+          >
             <img
               src={data.fotourl || `/asset/foto-${data.tema}.png`}
               alt="Acara"
+              style={{ width: "100%" }}
             />
-          </PhotoFrame>
+          </motion.div>
 
           <div style={{ marginBottom: "30px" }}>
-            <GoldText bold size="18px">
-              {data.tanggal}
+            <GoldText variants={itemVariants} bold size="20px">
+              {formatTglIndo(data.tanggal)}
             </GoldText>
-            <GoldText bold size="18px">
-              {formatJamClean(data.jam)}
+            <GoldText variants={itemVariants} bold size="26px">
+              ({cleanJam(data.jam)} WIB)
             </GoldText>
-            <GoldText size="14px">📍 {data.lokasi}</GoldText>
+            {/* FONT LOKASI GEDE & JELAS */}
+            <GoldText
+              variants={itemVariants}
+              size="22px"
+              bold
+              style={{ marginTop: "10px" }}
+            >
+              📍 {data.lokasi}
+            </GoldText>
           </div>
 
-          <GoldText size="14px">Kepada Yth:</GoldText>
-          <GoldText bold size="26px" style={{ marginBottom: "30px" }}>
-            {to}
-          </GoldText>
+          <motion.div variants={itemVariants} style={{ margin: "40px 0" }}>
+            <GoldText size="14px">Kepada Yth:</GoldText>
+            <GoldText bold size="28px">
+              {to}
+            </GoldText>
+          </motion.div>
 
-          <a
-            href={data.mapsurl}
-            target="_blank"
-            rel="noreferrer"
-            style={{ textDecoration: "none", marginBottom: "10px" }}
+          <motion.div
+            variants={itemVariants}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "15px",
+            }}
           >
-            <div
-              style={{
-                width: "280px",
-                height: "55px",
-                borderRadius: "50px",
-                border: `2px solid ${style.gold}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: style.gold,
-                fontWeight: "bold",
-              }}
+            <a
+              href={data.mapsurl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: "none" }}
             >
-              📍 Lokasi Maps
-            </div>
-          </a>
-          <ActionButton
-            btnGrad={style.btnGrad}
-            onClick={() => setShowForm(true)}
-          >
-            Konfirmasi Kehadiran
-          </ActionButton>
-        </Content>
+              <div
+                style={{
+                  width: "280px",
+                  height: "55px",
+                  borderRadius: "50px",
+                  border: `2px solid ${style.gold}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: style.gold,
+                  fontWeight: "bold",
+                  background: "white",
+                }}
+              >
+                📍 Buka Lokasi Maps
+              </div>
+            </a>
+            <ActionButton
+              btnGrad={style.btnGrad}
+              onClick={() => setShowForm(true)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Konfirmasi Kehadiran
+            </ActionButton>
+          </motion.div>
+        </motion.div>
 
-        <FooterImg
-          src={`/asset/footer-${data.tema}.png`}
-          initial={{ y: 50 }}
+        <motion.img
+          initial={{ y: 100 }}
           animate={{ y: 0 }}
+          transition={{ duration: 1 }}
+          src={`/asset/footer-${data.tema}.png`}
+          style={{ width: "100%", marginTop: "40px" }}
         />
 
         <AnimatePresence>
           {showForm && (
-            <div
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               style={{
                 position: "fixed",
                 inset: 0,
@@ -298,19 +326,23 @@ export default function App() {
               onClick={() => setShowForm(false)}
             >
               <motion.div
-                initial={{ scale: 0.5 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.5 }}
+                initial={{ y: 50 }}
+                animate={{ y: 0 }}
+                exit={{ y: 50 }}
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   background: "#fff",
                   width: "90%",
                   maxWidth: "350px",
-                  padding: "25px",
-                  borderRadius: "20px",
+                  padding: "30px",
+                  borderRadius: "25px",
                 }}
               >
-                <GoldText bold size="20px" style={{ marginBottom: "15px" }}>
+                <GoldText
+                  bold
+                  size="22px"
+                  style={{ color: "#333", marginBottom: "20px" }}
+                >
                   Form Kehadiran
                 </GoldText>
                 <form onSubmit={handleRSVP}>
@@ -327,10 +359,11 @@ export default function App() {
                     required
                     style={{
                       width: "100%",
-                      padding: "12px",
-                      margin: "8px 0",
-                      border: "1px solid #ddd",
-                      borderRadius: "8px",
+                      padding: "15px",
+                      marginBottom: "15px",
+                      border: "1px solid #eee",
+                      borderRadius: "12px",
+                      background: "#f9f9f9",
                     }}
                   />
                   <select
@@ -338,10 +371,11 @@ export default function App() {
                     required
                     style={{
                       width: "100%",
-                      padding: "12px",
-                      margin: "8px 0",
-                      border: "1px solid #ddd",
-                      borderRadius: "8px",
+                      padding: "15px",
+                      marginBottom: "15px",
+                      border: "1px solid #eee",
+                      borderRadius: "12px",
+                      background: "#f9f9f9",
                     }}
                   >
                     <option value="Hadir">Hadir</option>
@@ -354,10 +388,11 @@ export default function App() {
                     required
                     style={{
                       width: "100%",
-                      padding: "12px",
-                      margin: "8px 0",
-                      border: "1px solid #ddd",
-                      borderRadius: "8px",
+                      padding: "15px",
+                      marginBottom: "20px",
+                      border: "1px solid #eee",
+                      borderRadius: "12px",
+                      background: "#f9f9f9",
                     }}
                   />
                   <ActionButton
@@ -365,13 +400,13 @@ export default function App() {
                     type="submit"
                     btnGrad={style.btnGrad}
                     disabled={loading}
-                    style={{ width: "100%", height: "45px" }}
+                    style={{ width: "100%" }}
                   >
-                    {loading ? "Mengirim..." : "Kirim Konfirmasi"}
+                    {loading ? "Mengirim..." : "Kirim Sekarang"}
                   </ActionButton>
                 </form>
               </motion.div>
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </Container>
