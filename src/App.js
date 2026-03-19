@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// GANTI DENGAN LINK DEPLOY APPS SCRIPT BARU LU
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbzMnlm6NR97SFZqZDTjrC5HJlb6MUxC211AH9nUo80pXssBZUezTEq60K4sHWRfCNRRxw/exec";
+  "https://script.google.com/macros/s/AKfycbwFIk7uPGb93SzhTWyljVPa1aQoY4kA3y8xughXhSAv_mCKEZm4V0IYrr7I6_1yFxGgLw/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -110,7 +109,6 @@ const Title = styled(motion.h1)`
       : `color: ${props.color};`}
 `;
 
-// PHOTO FRAME: Shadow Dihapus Total, Border Dihapus.
 const PhotoFrame = styled(motion.div)`
   width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
   height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
@@ -141,6 +139,17 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
+
+  const getDriveUrl = (url) => {
+    if (!url) return null;
+    if (url.includes("drive.google.com")) {
+      const fileId =
+        url.split("/d/")[1]?.split("/")[0] ||
+        url.split("id=")[1]?.split("&")[0];
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    return url;
+  };
 
   const formatTglIndo = (str) => {
     if (!str) return "";
@@ -280,11 +289,14 @@ export default function App() {
             {data.instansi}
           </GoldText>
 
-          {/* FOTO KLIEN: Narik dari fotourl di Spreadsheet */}
           <PhotoFrame variants={itemVariants} tema={data.tema}>
             <img
-              src={data.fotourl || `/asset/foto-${data.tema}.png`}
+              src={getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`}
               alt="Foto Acara"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `/asset/foto-${data.tema}.png`;
+              }}
             />
           </PhotoFrame>
 
