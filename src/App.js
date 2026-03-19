@@ -11,12 +11,16 @@ const DAFTAR_TEMA = {
     bg: "#ffffff",
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
+    coverBg: "#fdfbf7",
+    textMain: "#333333",
   },
   hijau: {
     bg: "#042f2e",
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
+    coverBg: "#032524",
+    textMain: "#fef08a",
   },
 };
 
@@ -57,6 +61,22 @@ const LoadingScreen = styled.div`
     background-size: 200% 100%;
     animation: ${shimmer} 1.5s infinite;
   }
+`;
+
+const WelcomeCover = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: ${(props) => props.bg};
+  background-image: url(${(props) => props.bgImg});
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
 `;
 
 const MusicButton = styled(motion.div)`
@@ -140,6 +160,8 @@ const GoldText = styled(motion.p)`
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
+  const [urlTema, setUrlTema] = useState("putih");
+  const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
@@ -191,29 +213,32 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const t = params.get("to");
+    const temaUrl = params.get("t");
+
     if (t) setTo(decodeURIComponent(t));
+    if (temaUrl && DAFTAR_TEMA[temaUrl]) setUrlTema(temaUrl);
+
     if (id) {
       fetch(`${GAS_URL}?id=${id}`)
         .then((res) => res.json())
         .then((res) => {
           if (!res.error) {
             setData(res);
-            // TRICK AUTOPLAY: Delay 1.5 detik biar browser lebih toleran
-            setTimeout(() => {
-              if (audioRef.current) {
-                audioRef.current
-                  .play()
-                  .then(() => setIsPlaying(true))
-                  .catch(() =>
-                    console.log("Menunggu interaksi user untuk musik")
-                  );
-              }
-            }, 1500);
           }
         })
         .catch((err) => console.error("Error fetching data:", err));
     }
   }, []);
+
+  const handleOpenInvitation = () => {
+    setIsOpen(true);
+    if (audioRef.current) {
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => console.log("Menunggu interaksi user untuk musik"));
+    }
+  };
 
   const toggleMusic = () => {
     if (isPlaying) {
@@ -242,17 +267,9 @@ export default function App() {
     }
   };
 
-  if (!data)
-    return (
-      <LoadingScreen>
-        <div className="logo">Aksara Store</div>
-        <div className="bar">
-          <div className="progress" />
-        </div>
-      </LoadingScreen>
-    );
+  const styleUrl = DAFTAR_TEMA[urlTema] || DAFTAR_TEMA.putih;
+  const style = data ? DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih : styleUrl;
 
-  const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -270,261 +287,344 @@ export default function App() {
       <GlobalStyle />
       <audio ref={audioRef} loop src="/asset/music.mp3"></audio>
 
-      <MusicButton
-        btnGrad={style.btnGrad}
-        playing={isPlaying}
-        onClick={toggleMusic}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-      >
-        {isPlaying ? (
-          <svg viewBox="0 0 24 24">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        )}
-      </MusicButton>
-
-      <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
-        <motion.img
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.2 }}
-          src={`/asset/header-${data.tema}.png`}
-          style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
-        />
-
-        <Content variants={containerVariants} initial="hidden" animate="show">
-          <GoldText variants={itemVariants} size="20px">
-            Undangan
-          </GoldText>
-          <Title
-            variants={itemVariants}
-            tema={data.tema}
-            color={style.gold}
-            grad={style.titleGrad}
+      <AnimatePresence>
+        {!isOpen && (
+          <WelcomeCover
+            bg={styleUrl.coverBg}
+            bgImg={`/asset/pattern-${urlTema}.png`}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
           >
-            Halal Bihalal
-          </Title>
-          <GoldText
-            variants={itemVariants}
-            size="14px"
-            style={{ letterSpacing: "2px", textTransform: "uppercase" }}
-          >
-            {data.instansi}
-          </GoldText>
-
-          <PhotoFrame variants={itemVariants}>
-            <img
-              src={getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`}
-              alt="Foto Acara"
-              crossOrigin="anonymous"
-              onError={(e) => {
-                e.target.src = `/asset/foto-${data.tema}.png`;
-              }}
-            />
-          </PhotoFrame>
-
-          <motion.div variants={itemVariants} style={{ margin: "15px 0" }}>
-            <GoldText bold size="22px">
-              {formatTglIndo(data.tanggal)}
-            </GoldText>
-            <GoldText bold size="26px">
-              ({cleanJam(data.jam)} WIB)
-            </GoldText>
-            <GoldText bold size="22px" style={{ marginTop: "5px" }}>
-              📍 {data.lokasi}
-            </GoldText>
-          </motion.div>
-
-          <motion.div variants={itemVariants} style={{ margin: "30px 0" }}>
-            <GoldText size="14px">Kepada Yth:</GoldText>
-            <GoldText bold size="28px">
-              {to}
-            </GoldText>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "15px",
-              alignItems: "center",
-            }}
-          >
-            <a
-              href={data.mapsurl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ textDecoration: "none" }}
+            <GoldText size="20px">Undangan</GoldText>
+            <Title
+              tema={urlTema}
+              color={styleUrl.gold}
+              grad={styleUrl.titleGrad}
             >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                style={{
-                  width: "280px",
-                  height: "55px",
-                  borderRadius: "50px",
-                  border: `2px solid ${style.gold}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: style.gold,
-                  fontWeight: "bold",
-                  background: "white",
-                }}
-              >
-                📍 Buka Lokasi Maps
-              </motion.div>
-            </a>
+              Halal Bihalal
+            </Title>
+            <GoldText
+              size="14px"
+              style={{
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                marginBottom: "40px",
+              }}
+            >
+              Aksara Store
+            </GoldText>
+            <GoldText size="16px">Kepada Yth:</GoldText>
+            <motion.p
+              style={{
+                fontSize: "30px",
+                fontWeight: "700",
+                color: styleUrl.textMain,
+                margin: "10px 0 40px",
+              }}
+            >
+              {to}
+            </motion.p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setShowForm(true)}
+              onClick={handleOpenInvitation}
               style={{
-                width: "280px",
-                height: "55px",
+                padding: "15px 40px",
                 borderRadius: "50px",
                 border: "none",
-                background: style.btnGrad,
+                background: styleUrl.btnGrad,
                 color: "#fff",
                 fontSize: "16px",
                 fontWeight: "bold",
                 cursor: "pointer",
+                boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
               }}
             >
-              Konfirmasi Kehadiran
+              📩 Buka Undangan
             </motion.button>
-          </motion.div>
-        </Content>
+          </WelcomeCover>
+        )}
+      </AnimatePresence>
 
-        <motion.img
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.2 }}
-          src={`/asset/footer-${data.tema}.png`}
-          style={{ width: "100%", position: "absolute", bottom: 0, left: 0 }}
-        />
+      {isOpen && !data && (
+        <LoadingScreen>
+          <div className="logo">Aksara Store</div>
+          <div className="bar">
+            <div className="progress" />
+          </div>
+        </LoadingScreen>
+      )}
 
-        <AnimatePresence>
-          {showForm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.85)",
-                zIndex: 1000,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={() => setShowForm(false)}
+      {isOpen && data && (
+        <>
+          <MusicButton
+            btnGrad={style.btnGrad}
+            playing={isPlaying}
+            onClick={toggleMusic}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+          >
+            {isPlaying ? (
+              <svg viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+          </MusicButton>
+
+          <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
+            <motion.img
+              initial={{ y: -100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.2 }}
+              src={`/asset/header-${data.tema}.png`}
+              style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
+            />
+
+            <Content
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
             >
+              <GoldText variants={itemVariants} size="20px">
+                Undangan
+              </GoldText>
+              <Title
+                variants={itemVariants}
+                tema={data.tema}
+                color={style.gold}
+                grad={style.titleGrad}
+              >
+                Halal Bihalal
+              </Title>
+              <GoldText
+                variants={itemVariants}
+                size="14px"
+                style={{ letterSpacing: "2px", textTransform: "uppercase" }}
+              >
+                {data.instansi}
+              </GoldText>
+
+              <PhotoFrame variants={itemVariants}>
+                <img
+                  src={
+                    getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`
+                  }
+                  alt="Foto Acara"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    e.target.src = `/asset/foto-${data.tema}.png`;
+                  }}
+                />
+              </PhotoFrame>
+
+              <motion.div variants={itemVariants} style={{ margin: "15px 0" }}>
+                <GoldText bold size="22px">
+                  {formatTglIndo(data.tanggal)}
+                </GoldText>
+                <GoldText bold size="26px">
+                  ({cleanJam(data.jam)} WIB)
+                </GoldText>
+                <GoldText bold size="22px" style={{ marginTop: "5px" }}>
+                  📍 {data.lokasi}
+                </GoldText>
+              </motion.div>
+
+              <motion.div variants={itemVariants} style={{ margin: "30px 0" }}>
+                <GoldText size="14px">Kepada Yth:</GoldText>
+                <GoldText bold size="28px">
+                  {to}
+                </GoldText>
+              </motion.div>
+
               <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                onClick={(e) => e.stopPropagation()}
+                variants={itemVariants}
                 style={{
-                  background: "#fff",
-                  width: "90%",
-                  maxWidth: "350px",
-                  padding: "30px",
-                  borderRadius: "25px",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "15px",
+                  alignItems: "center",
                 }}
               >
-                <GoldText
-                  bold
-                  size="22px"
-                  style={{ color: "#333", marginBottom: "20px" }}
+                <a
+                  href={data.mapsurl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ textDecoration: "none" }}
                 >
-                  Form Kehadiran
-                </GoldText>
-                <form onSubmit={handleRSVP}>
-                  <input
-                    type="hidden"
-                    name="id"
-                    value={new URLSearchParams(window.location.search).get(
-                      "id"
-                    )}
-                  />
-                  <input
-                    name="nama"
-                    defaultValue={to}
-                    required
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     style={{
-                      width: "100%",
-                      padding: "15px",
-                      marginBottom: "15px",
-                      border: "1px solid #eee",
-                      borderRadius: "12px",
-                      background: "#f9f9f9",
-                      fontSize: "16px",
-                    }}
-                  />
-                  <select
-                    name="status"
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "15px",
-                      marginBottom: "15px",
-                      border: "1px solid #eee",
-                      borderRadius: "12px",
-                      background: "#f9f9f9",
-                      fontSize: "16px",
-                    }}
-                  >
-                    <option value="Hadir">Hadir</option>
-                    <option value="Berhalangan">Berhalangan</option>
-                  </select>
-                  <input
-                    name="jumlah"
-                    type="number"
-                    placeholder="Jumlah Orang"
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "15px",
-                      marginBottom: "20px",
-                      border: "1px solid #eee",
-                      borderRadius: "12px",
-                      background: "#f9f9f9",
-                      fontSize: "16px",
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loadingForm}
-                    style={{
-                      width: "100%",
+                      width: "280px",
                       height: "55px",
                       borderRadius: "50px",
-                      border: "none",
-                      background: style.btnGrad,
-                      color: "#fff",
-                      fontSize: "16px",
+                      border: `2px solid ${style.gold}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: style.gold,
                       fontWeight: "bold",
-                      cursor: "pointer",
+                      background: "white",
                     }}
                   >
-                    {loadingForm ? "Mengirim..." : "Kirim Sekarang"}
-                  </button>
-                </form>
+                    📍 Buka Lokasi Maps
+                  </motion.div>
+                </a>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowForm(true)}
+                  style={{
+                    width: "280px",
+                    height: "55px",
+                    borderRadius: "50px",
+                    border: "none",
+                    background: style.btnGrad,
+                    color: "#fff",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  Konfirmasi Kehadiran
+                </motion.button>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Container>
+            </Content>
+
+            <motion.img
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.2 }}
+              src={`/asset/footer-${data.tema}.png`}
+              style={{
+                width: "100%",
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+              }}
+            />
+
+            <AnimatePresence>
+              {showForm && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.85)",
+                    zIndex: 1000,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={() => setShowForm(false)}
+                >
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: "#fff",
+                      width: "90%",
+                      maxWidth: "350px",
+                      padding: "30px",
+                      borderRadius: "25px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    <GoldText
+                      bold
+                      size="22px"
+                      style={{ color: "#333", marginBottom: "20px" }}
+                    >
+                      Form Kehadiran
+                    </GoldText>
+                    <form onSubmit={handleRSVP}>
+                      <input
+                        type="hidden"
+                        name="id"
+                        value={new URLSearchParams(window.location.search).get(
+                          "id"
+                        )}
+                      />
+                      <input
+                        name="nama"
+                        defaultValue={to}
+                        required
+                        style={{
+                          width: "100%",
+                          padding: "15px",
+                          marginBottom: "15px",
+                          border: "1px solid #eee",
+                          borderRadius: "12px",
+                          background: "#f9f9f9",
+                          fontSize: "16px",
+                        }}
+                      />
+                      <select
+                        name="status"
+                        required
+                        style={{
+                          width: "100%",
+                          padding: "15px",
+                          marginBottom: "15px",
+                          border: "1px solid #eee",
+                          borderRadius: "12px",
+                          background: "#f9f9f9",
+                          fontSize: "16px",
+                        }}
+                      >
+                        <option value="Hadir">Hadir</option>
+                        <option value="Berhalangan">Berhalangan</option>
+                      </select>
+                      <input
+                        name="jumlah"
+                        type="number"
+                        placeholder="Jumlah Orang"
+                        required
+                        style={{
+                          width: "100%",
+                          padding: "15px",
+                          marginBottom: "20px",
+                          border: "1px solid #eee",
+                          borderRadius: "12px",
+                          background: "#f9f9f9",
+                          fontSize: "16px",
+                        }}
+                      />
+                      <button
+                        type="submit"
+                        disabled={loadingForm}
+                        style={{
+                          width: "100%",
+                          height: "55px",
+                          borderRadius: "50px",
+                          border: "none",
+                          background: style.btnGrad,
+                          color: "#fff",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {loadingForm ? "Mengirim..." : "Kirim Sekarang"}
+                      </button>
+                    </form>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Container>
+        </>
+      )}
     </>
   );
 }
