@@ -22,17 +22,12 @@ const DAFTAR_TEMA = {
 
 const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
 const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(196, 167, 79, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0); } `;
+const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } `;
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: #fff; }
-  
-  /* ANTI ITALIC - SESUAI REQUEST LU DAN */
-  * { 
-    font-style: normal !important; 
-    box-sizing: border-box; 
-    font-family: 'Poppins', sans-serif; 
-  } 
+  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; } 
 `;
 
 const LoadingScreen = styled.div`
@@ -118,12 +113,14 @@ const Title = styled(motion.h1)`
 `;
 
 const PhotoFrame = styled(motion.div)`
-  width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
-  height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
-  margin: 15px 0;
-  border-radius: 12px;
+  width: 220px;
+  height: 220px;
+  margin: 25px 0;
+  border-radius: 50%;
   overflow: hidden;
-  box-shadow: none !important;
+  border: 4px solid #c4a74f;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: ${floating} 4s ease-in-out infinite;
   img {
     width: 100%;
     height: 100%;
@@ -148,27 +145,20 @@ export default function App() {
   const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
 
-  // FUNGSI HANDLER FOTO: ANTI REWEL BUAT IMGBB & DRIVE
   const getDriveUrl = (url) => {
     if (!url) return null;
-
-    // Kalau link ImgBB (punya .jpg/png/webp), langsung gas
     if (
       url.includes("ibb.co") ||
       url.includes("postimg") ||
       url.includes("telegra.ph")
-    ) {
+    )
       return url;
-    }
-
-    // Kalau kepaksa pake Drive, pake trik thumbnail biar stabil
     if (url.includes("drive.google.com")) {
       const fileId =
         url.split("/d/")[1]?.split("/")[0] ||
         url.split("id=")[1]?.split("&")[0];
-      return `https://lh3.googleusercontent.com/d/$${fileId}=w1000`;
+      return `https://lh3.googleusercontent.com/u/0/d/${fileId}=w1000`;
     }
-
     return url;
   };
 
@@ -206,7 +196,20 @@ export default function App() {
       fetch(`${GAS_URL}?id=${id}`)
         .then((res) => res.json())
         .then((res) => {
-          if (!res.error) setData(res);
+          if (!res.error) {
+            setData(res);
+            // TRICK AUTOPLAY: Delay 1.5 detik biar browser lebih toleran
+            setTimeout(() => {
+              if (audioRef.current) {
+                audioRef.current
+                  .play()
+                  .then(() => setIsPlaying(true))
+                  .catch(() =>
+                    console.log("Menunggu interaksi user untuk musik")
+                  );
+              }
+            }, 1500);
+          }
         })
         .catch((err) => console.error("Error fetching data:", err));
     }
@@ -252,7 +255,10 @@ export default function App() {
   const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
   const containerVariants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2, delayChildren: 0.5 },
+    },
   };
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -284,9 +290,9 @@ export default function App() {
 
       <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
         <motion.img
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 1 }}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.2 }}
           src={`/asset/header-${data.tema}.png`}
           style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
         />
@@ -311,34 +317,28 @@ export default function App() {
             {data.instansi}
           </GoldText>
 
-          <PhotoFrame variants={itemVariants} tema={data.tema}>
+          <PhotoFrame variants={itemVariants}>
             <img
               src={getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`}
               alt="Foto Acara"
               crossOrigin="anonymous"
               onError={(e) => {
-                e.target.onerror = null;
                 e.target.src = `/asset/foto-${data.tema}.png`;
               }}
             />
           </PhotoFrame>
 
-          <div style={{ margin: "15px 0" }}>
-            <GoldText variants={itemVariants} bold size="20px">
+          <motion.div variants={itemVariants} style={{ margin: "15px 0" }}>
+            <GoldText bold size="22px">
               {formatTglIndo(data.tanggal)}
             </GoldText>
-            <GoldText variants={itemVariants} bold size="26px">
+            <GoldText bold size="26px">
               ({cleanJam(data.jam)} WIB)
             </GoldText>
-            <GoldText
-              variants={itemVariants}
-              bold
-              size="22px"
-              style={{ marginTop: "5px" }}
-            >
+            <GoldText bold size="22px" style={{ marginTop: "5px" }}>
               📍 {data.lokasi}
             </GoldText>
-          </div>
+          </motion.div>
 
           <motion.div variants={itemVariants} style={{ margin: "30px 0" }}>
             <GoldText size="14px">Kepada Yth:</GoldText>
@@ -362,7 +362,9 @@ export default function App() {
               rel="noreferrer"
               style={{ textDecoration: "none" }}
             >
-              <div
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 style={{
                   width: "280px",
                   height: "55px",
@@ -377,9 +379,11 @@ export default function App() {
                 }}
               >
                 📍 Buka Lokasi Maps
-              </div>
+              </motion.div>
             </a>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setShowForm(true)}
               style={{
                 width: "280px",
@@ -394,14 +398,14 @@ export default function App() {
               }}
             >
               Konfirmasi Kehadiran
-            </button>
+            </motion.button>
           </motion.div>
         </Content>
 
         <motion.img
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 1 }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.2 }}
           src={`/asset/footer-${data.tema}.png`}
           style={{ width: "100%", position: "absolute", bottom: 0, left: 0 }}
         />
