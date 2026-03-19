@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// GANTI DENGAN LINK DEPLOY APPS SCRIPT LU
+// GANTI DENGAN LINK DEPLOY APPS SCRIPT BARU LU
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbxMGtImJLpjoIxpohP2hCxxCMXMbwHPJIeD3DWXaS2nXR4aadNKUNtD_LL3ZgZrNxwwLw/exec";
+  "https://script.google.com/macros/s/AKfycbzMnlm6NR97SFZqZDTjrC5HJlb6MUxC211AH9nUo80pXssBZUezTEq60K4sHWRfCNRRxw/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -109,18 +109,23 @@ const Title = styled(motion.h1)`
       ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
       : `color: ${props.color};`}
 `;
+
+// PHOTO FRAME: Shadow Dihapus Total, Border Dihapus.
 const PhotoFrame = styled(motion.div)`
   width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
   height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
   margin: 15px 0;
   border-radius: 12px;
   overflow: hidden;
+  box-shadow: none !important;
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border: none !important;
   }
 `;
+
 const GoldText = styled(motion.p)`
   color: #c4a74f;
   margin: 2px 0;
@@ -194,7 +199,7 @@ export default function App() {
         method: "POST",
         mode: "no-cors",
       });
-      alert("Terima kasih! Konfirmasi kehadiran Anda telah tersimpan.");
+      alert("Terima kasih! Konfirmasi Anda telah tersimpan.");
       setShowForm(false);
     } catch (e) {
       alert("Maaf, terjadi kesalahan.");
@@ -275,10 +280,11 @@ export default function App() {
             {data.instansi}
           </GoldText>
 
+          {/* FOTO KLIEN: Narik dari fotourl di Spreadsheet */}
           <PhotoFrame variants={itemVariants} tema={data.tema}>
             <img
               src={data.fotourl || `/asset/foto-${data.tema}.png`}
-              alt="Acara"
+              alt="Foto Acara"
             />
           </PhotoFrame>
 
