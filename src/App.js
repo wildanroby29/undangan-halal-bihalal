@@ -292,11 +292,23 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ y: "-100%", opacity: 0 }}
             transition={{
-              initial: { duration: 1.5, ease: "easeInOut" },
-              animate: { duration: 1.5, ease: "easeInOut" },
+              initial: { duration: 2.5, ease: "easeInOut" },
+              animate: { duration: 2.5, ease: "easeInOut" },
               exit: { duration: 0.8, ease: "easeInOut" },
             }}
           >
+            <motion.img
+              initial={{ y: -100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.5, ease: "easeInOut", delay: 1 }}
+              src={`/asset/header-${urlTema}.png`}
+              style={{
+                width: "100%",
+                maxwidth: "430px",
+                position: "absolute",
+                top: 0,
+              }}
+            />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -311,10 +323,23 @@ export default function App() {
                 fontWeight: "bold",
                 cursor: "pointer",
                 boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
+                zIndex: 10,
               }}
             >
-              📩 Buka Undangan
+              Undangan Halal Bihalal
             </motion.button>
+            <motion.img
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.5, ease: "easeInOut", delay: 1 }}
+              src={`/asset/footer-${urlTema}.png`}
+              style={{
+                width: "100%",
+                maxwidth: "430px",
+                position: "absolute",
+                bottom: 0,
+              }}
+            />
           </WelcomeCover>
         )}
       </AnimatePresence>
