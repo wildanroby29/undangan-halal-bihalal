@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
+// PASTIKAN LINK GAS SUDAH BENAR
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbxIDZNjPrm26i4Z_-ephPl82oTyhOtrzZ6m8BiKVn-mGeqx0aJVqD-VPESvlCfc6FPH3Q/exec";
+  "https://script.google.com/macros/s/AKfycbys0cwBvpGmhenlu4fpFcZ94jvVqWU-RYNcHtX1xMePxD_gZXdSgN7iA862c_waIliVng/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -23,8 +24,8 @@ const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { backgroun
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
-  body { margin: 0; font-family: 'Poppins', sans-serif; background: #fff; overflow-x: hidden; }
-  * { font-style: normal !important; box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: #fff; }
+  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; } 
 `;
 
 const LoadingScreen = styled.div`
@@ -60,56 +61,72 @@ const LoadingScreen = styled.div`
 const Container = styled.div`
   width: 100%;
   max-width: 430px;
-  margin: 0 auto;
   min-height: 100vh;
+  margin: 0 auto;
   position: relative;
-  text-align: center;
-  background: ${(props) => props.bg};
+  background-color: ${(props) => props.bg};
+  background-image: url(${(props) => props.bgImg});
+  background-size: cover;
+  background-position: center;
 `;
-const Title = styled(motion.h1)`
+
+const Content = styled(motion.div)`
+  padding: 130px 20px 100px;
+  z-index: 5;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Title = styled.h1`
   font-family: "Lobster", cursive;
-  font-size: 52px;
-  margin: 10px 0;
+  font-size: 48px;
+  margin: 0;
   font-weight: 400;
   ${(props) =>
     props.tema === "hijau"
       ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
       : `color: ${props.color};`}
 `;
-const GoldText = styled(motion.p)`
+
+const PhotoFrame = styled.div`
+  width: ${(props) => (props.tema === "hijau" ? "210px" : "320px")};
+  height: ${(props) => (props.tema === "hijau" ? "230px" : "180px")};
+  margin: 15px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const GoldText = styled.p`
   color: #c4a74f;
+  margin: 2px 0;
+  text-align: center;
   font-size: ${(props) => props.size || "16px"};
   font-weight: ${(props) => (props.bold ? "700" : "400")};
-  margin: 5px 0;
-`;
-const ActionButton = styled(motion.button)`
-  width: 280px;
-  height: 55px;
-  border-radius: 50px;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
-  background: ${(props) => props.btnGrad};
-  cursor: pointer;
 `;
 
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const formatTglIndo = (str) => {
     if (!str) return "";
     const d = new Date(str);
-    if (isNaN(d.getTime())) return str;
-    return d.toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    return isNaN(d.getTime())
+      ? str
+      : d.toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
   };
 
   const cleanJam = (jamStr) => {
@@ -138,24 +155,6 @@ export default function App() {
     }
   }, []);
 
-  const handleRSVP = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const formData = new URLSearchParams(new FormData(e.target)).toString();
-    try {
-      await fetch(`${GAS_URL}?${formData}`, {
-        method: "POST",
-        mode: "no-cors",
-      });
-      alert("Terima kasih! Konfirmasi Anda telah tersimpan.");
-      setShowForm(false);
-    } catch (e) {
-      alert("Gagal mengirim.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (!data)
     return (
       <LoadingScreen>
@@ -168,103 +167,60 @@ export default function App() {
 
   const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
 
-  // Animasi Stagger
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.2 } },
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
-  };
-
   return (
     <>
       <GlobalStyle />
-      <Container bg={style.bg}>
-        <motion.img
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 1 }}
+      <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
+        <img
           src={`/asset/header-${data.tema}.png`}
-          style={{ width: "100%" }}
+          style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
         />
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          style={{ padding: "20px" }}
+        <Content
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
         >
-          <GoldText variants={itemVariants} size="22px">
-            Undangan
-          </GoldText>
-          <Title
-            variants={itemVariants}
-            tema={data.tema}
-            color={style.gold}
-            grad={style.titleGrad}
-          >
+          <GoldText size="20px">Undangan</GoldText>
+          <Title tema={data.tema} color={style.gold} grad={style.titleGrad}>
             Halal Bihalal
           </Title>
           <GoldText
-            variants={itemVariants}
             size="14px"
-            style={{ textTransform: "uppercase", letterSpacing: "2px" }}
+            style={{ letterSpacing: "2px", textTransform: "uppercase" }}
           >
             {data.instansi}
           </GoldText>
 
-          <motion.div
-            variants={itemVariants}
-            style={{
-              width: "85%",
-              margin: "25px auto",
-              borderRadius: "15px",
-              overflow: "hidden",
-              boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
-            }}
-          >
+          <PhotoFrame tema={data.tema}>
             <img
               src={data.fotourl || `/asset/foto-${data.tema}.png`}
               alt="Acara"
-              style={{ width: "100%" }}
             />
-          </motion.div>
+          </PhotoFrame>
 
-          <div style={{ marginBottom: "30px" }}>
-            <GoldText variants={itemVariants} bold size="20px">
+          <div style={{ margin: "10px 0" }}>
+            <GoldText bold size="19px">
               {formatTglIndo(data.tanggal)}
             </GoldText>
-            <GoldText variants={itemVariants} bold size="26px">
+            <GoldText bold size="24px">
               ({cleanJam(data.jam)} WIB)
             </GoldText>
-            {/* FONT LOKASI GEDE & JELAS */}
-            <GoldText
-              variants={itemVariants}
-              size="22px"
-              bold
-              style={{ marginTop: "10px" }}
-            >
+            {/* LOKASI GEDE DAN BOLD */}
+            <GoldText bold size="22px" style={{ marginTop: "5px" }}>
               📍 {data.lokasi}
             </GoldText>
           </div>
 
-          <motion.div variants={itemVariants} style={{ margin: "40px 0" }}>
+          <div style={{ margin: "25px 0" }}>
             <GoldText size="14px">Kepada Yth:</GoldText>
             <GoldText bold size="28px">
               {to}
             </GoldText>
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={itemVariants}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "15px",
-            }}
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
           >
             <a
               href={data.mapsurl}
@@ -275,7 +231,7 @@ export default function App() {
               <div
                 style={{
                   width: "280px",
-                  height: "55px",
+                  height: "52px",
                   borderRadius: "50px",
                   border: `2px solid ${style.gold}`,
                   display: "flex",
@@ -289,126 +245,29 @@ export default function App() {
                 📍 Buka Lokasi Maps
               </div>
             </a>
-            <ActionButton
-              btnGrad={style.btnGrad}
+            <button
               onClick={() => setShowForm(true)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              style={{
+                width: "280px",
+                height: "52px",
+                borderRadius: "50px",
+                border: "none",
+                background: style.btnGrad,
+                color: "#fff",
+                fontSize: "16px",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
             >
               Konfirmasi Kehadiran
-            </ActionButton>
-          </motion.div>
-        </motion.div>
+            </button>
+          </div>
+        </Content>
 
-        <motion.img
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 1 }}
+        <img
           src={`/asset/footer-${data.tema}.png`}
-          style={{ width: "100%", marginTop: "40px" }}
+          style={{ width: "100%", position: "absolute", bottom: 0, left: 0 }}
         />
-
-        <AnimatePresence>
-          {showForm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.85)",
-                zIndex: 999,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={() => setShowForm(false)}
-            >
-              <motion.div
-                initial={{ y: 50 }}
-                animate={{ y: 0 }}
-                exit={{ y: 50 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: "#fff",
-                  width: "90%",
-                  maxWidth: "350px",
-                  padding: "30px",
-                  borderRadius: "25px",
-                }}
-              >
-                <GoldText
-                  bold
-                  size="22px"
-                  style={{ color: "#333", marginBottom: "20px" }}
-                >
-                  Form Kehadiran
-                </GoldText>
-                <form onSubmit={handleRSVP}>
-                  <input
-                    type="hidden"
-                    name="id"
-                    value={new URLSearchParams(window.location.search).get(
-                      "id"
-                    )}
-                  />
-                  <input
-                    name="nama"
-                    defaultValue={to}
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "15px",
-                      marginBottom: "15px",
-                      border: "1px solid #eee",
-                      borderRadius: "12px",
-                      background: "#f9f9f9",
-                    }}
-                  />
-                  <select
-                    name="status"
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "15px",
-                      marginBottom: "15px",
-                      border: "1px solid #eee",
-                      borderRadius: "12px",
-                      background: "#f9f9f9",
-                    }}
-                  >
-                    <option value="Hadir">Hadir</option>
-                    <option value="Berhalangan">Berhalangan</option>
-                  </select>
-                  <input
-                    name="jumlah"
-                    type="number"
-                    placeholder="Jumlah Orang"
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "15px",
-                      marginBottom: "20px",
-                      border: "1px solid #eee",
-                      borderRadius: "12px",
-                      background: "#f9f9f9",
-                    }}
-                  />
-                  <ActionButton
-                    as="button"
-                    type="submit"
-                    btnGrad={style.btnGrad}
-                    disabled={loading}
-                    style={{ width: "100%" }}
-                  >
-                    {loading ? "Mengirim..." : "Kirim Sekarang"}
-                  </ActionButton>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </Container>
     </>
   );
