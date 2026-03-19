@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
 // --- CONFIG & DATA ---
-// PASTIIN INI PAKE LINK DEPLOYMENT TERBARU DARI APPS SCRIPT
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
@@ -25,7 +24,6 @@ const DAFTAR_TEMA = {
 
 // --- ANIMATIONS ---
 const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } `;
-const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
 const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(196, 167, 79, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0); } `;
 
 // --- STYLED COMPONENTS ---
@@ -72,6 +70,7 @@ const Content = styled(motion.div)`
   flex-direction: column;
   align-items: center;
   text-align: center;
+  width: 100%;
 `;
 
 const Title = styled(motion.h1)`
@@ -139,11 +138,11 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
-  const [photoLoaded, setPhotoLoaded] = useState(false); // State buat nunggu foto
+  const [photoReady, setPhotoReady] = useState(false);
   const audioRef = useRef(null);
 
   const getDriveUrl = (url) => {
-    if (!url || url.trim() === "") return null;
+    if (!url || url.trim() === "" || url === "-") return null;
     if (
       url.includes("ibb.co") ||
       url.includes("postimg") ||
@@ -154,7 +153,7 @@ export default function App() {
       const fileId =
         url.split("/d/")[1]?.split("/")[0] ||
         url.split("id=")[1]?.split("&")[0];
-      return `https://lh3.googleusercontent.com/u/0/d/${fileId}=s1000`;
+      return `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
     }
     return url;
   };
@@ -196,8 +195,13 @@ export default function App() {
         .then((res) => res.json())
         .then((res) => {
           if (!res.error) setData(res);
+          // Kalau ga ada foto, langsung anggap ready
+          if (!res.fotourl || res.fotourl === "-" || res.fotourl === "")
+            setPhotoReady(true);
         })
-        .catch((err) => console.error(err));
+        .catch(() => setPhotoReady(true));
+    } else {
+      setPhotoReady(true);
     }
   }, []);
 
@@ -213,19 +217,6 @@ export default function App() {
 
   const styleUrl = DAFTAR_TEMA[urlTema] || DAFTAR_TEMA.putih;
   const style = data ? DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih : styleUrl;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2, delayChildren: 0.5 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
-  };
 
   return (
     <>
@@ -245,54 +236,62 @@ export default function App() {
             <motion.img
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 1 }}
+              transition={{ duration: 1 }}
               src={`/asset/header-${urlTema}.png`}
-              style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
+              style={{ width: "100%", position: "absolute", top: 0 }}
             />
 
-            <Content
-              variants={containerVariants}
-              initial="hidden"
-              animate="show"
-            >
-              <GoldText variants={itemVariants} size="20px">
+            <Content>
+              <GoldText
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
                 Undangan
               </GoldText>
               <Title
-                variants={itemVariants}
                 tema={urlTema}
                 color={styleUrl.gold}
                 grad={styleUrl.titleGrad}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.7 }}
               >
                 Halal Bihalal
               </Title>
               <GoldText
-                variants={itemVariants}
-                size="14px"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
                 style={{ letterSpacing: "2px", textTransform: "uppercase" }}
               >
                 {data ? data.instansi : "AKSARA STORE"}
               </GoldText>
 
+              {/* FOTO COVER: Trigger photoReady pas LOAD */}
               {data && getDriveUrl(data.fotourl) && (
-                <PhotoFrame variants={itemVariants}>
+                <PhotoFrame
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.1 }}
+                >
                   <img
                     src={getDriveUrl(data.fotourl)}
                     alt="Instansi"
-                    onLoad={() => setPhotoLoaded(true)}
+                    onLoad={() => setPhotoReady(true)}
                   />
                 </PhotoFrame>
               )}
 
-              {/* Sisa konten ini (tamu & tombol) CUMA muncul kalau foto sudah keload sempurna */}
+              {/* TAMU & TOMBOL: Nunggu fotoReady dulu biar ga balapan */}
               <AnimatePresence>
-                {(!data || !getDriveUrl(data.fotourl) || photoLoaded) && (
+                {photoReady && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                   >
-                    <div style={{ marginTop: "10px" }}>
+                    <div style={{ marginTop: "20px" }}>
                       <GoldText size="14px">Kepada Yth:</GoldText>
                       <GoldText bold size="28px">
                         {to}
@@ -326,14 +325,9 @@ export default function App() {
             <motion.img
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 1 }}
+              transition={{ duration: 1 }}
               src={`/asset/footer-${urlTema}.png`}
-              style={{
-                width: "100%",
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-              }}
+              style={{ width: "100%", position: "absolute", bottom: 0 }}
             />
           </WelcomeCover>
         )}
@@ -366,26 +360,18 @@ export default function App() {
               initial={{ y: -100 }}
               animate={{ y: 0 }}
               src={`/asset/header-${data.tema}.png`}
-              style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
+              style={{ width: "100%", position: "absolute", top: 0 }}
             />
             <Content
-              variants={containerVariants}
-              initial="hidden"
-              animate="show"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
             >
-              <GoldText variants={itemVariants} size="20px">
-                Undangan
-              </GoldText>
-              <Title
-                variants={itemVariants}
-                tema={data.tema}
-                color={style.gold}
-                grad={style.titleGrad}
-              >
+              <GoldText size="20px">Undangan</GoldText>
+              <Title tema={data.tema} color={style.gold} grad={style.titleGrad}>
                 Halal Bihalal
               </Title>
               <GoldText
-                variants={itemVariants}
                 size="14px"
                 style={{ letterSpacing: "2px", textTransform: "uppercase" }}
               >
@@ -393,12 +379,12 @@ export default function App() {
               </GoldText>
 
               {getDriveUrl(data.fotourl) && (
-                <PhotoFrame variants={itemVariants}>
+                <PhotoFrame>
                   <img src={getDriveUrl(data.fotourl)} alt="Acara" />
                 </PhotoFrame>
               )}
 
-              <motion.div variants={itemVariants} style={{ margin: "15px 0" }}>
+              <div style={{ margin: "20px 0" }}>
                 <GoldText bold size="22px">
                   {formatTglIndo(data.tanggal)}
                 </GoldText>
@@ -408,17 +394,16 @@ export default function App() {
                 <GoldText bold size="22px">
                   📍 {data.lokasi}
                 </GoldText>
-              </motion.div>
+              </div>
 
-              <motion.div variants={itemVariants} style={{ margin: "25px 0" }}>
+              <div style={{ margin: "25px 0" }}>
                 <GoldText size="14px">Kepada Yth:</GoldText>
                 <GoldText bold size="28px">
                   {to}
                 </GoldText>
-              </motion.div>
+              </div>
 
-              <motion.div
-                variants={itemVariants}
+              <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -468,18 +453,13 @@ export default function App() {
                 >
                   Konfirmasi Kehadiran
                 </motion.button>
-              </motion.div>
+              </div>
             </Content>
             <motion.img
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               src={`/asset/footer-${data.tema}.png`}
-              style={{
-                width: "100%",
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-              }}
+              style={{ width: "100%", position: "absolute", bottom: 0 }}
             />
 
             <AnimatePresence>
@@ -524,20 +504,17 @@ export default function App() {
                       onSubmit={async (e) => {
                         e.preventDefault();
                         setLoadingForm(true);
-                        const formData = new URLSearchParams(
-                          new FormData(e.target)
-                        ).toString();
+                        const fd = new FormData(e.target);
+                        const query = new URLSearchParams(fd).toString();
                         try {
-                          await fetch(`${GAS_URL}?${formData}`, {
+                          await fetch(`${GAS_URL}?${query}`, {
                             method: "POST",
                             mode: "no-cors",
                           });
-                          alert(
-                            "Terima kasih! Konfirmasi Anda telah tersimpan."
-                          );
+                          alert("Terima kasih! Data tersimpan.");
                           setShowForm(false);
                         } catch {
-                          alert("Maaf, terjadi kesalahan.");
+                          alert("Gagal mengirim.");
                         } finally {
                           setLoadingForm(false);
                         }
