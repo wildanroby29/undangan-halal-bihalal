@@ -1,112 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import styled, { createGlobalStyle, keyframes } from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 
-// ==========================================
-// 1. KONFIGURASI GAS LU
-// ==========================================
-const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbw5QWbHV3dliRS1Pnp9vo054B3y1gddA4KmrqkQl_6PgJ_McZpgZgbY6TNgHEciIV2EOg/exec";
-
-const DAFTAR_TEMA = {
-  putih: {
-    bg: "#ffffff",
-    gold: "#c4a74f",
-    btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
-  },
-  hijau: {
-    bg: "#042f2e",
-    gold: "#c4a74f",
-    btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
-    titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
-  },
-};
-
-// --- ANIMASI & GLOBAL STYLE ---
-const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } `;
+// URL GAS TERBARU LU
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzStL7c-wExxTlDljzEwy3yiGpXRWhMZGjk5nCRNGmJCBQOkTQWWRtAvCtTW2vfr-Lr5Q/exec";
 
 const GlobalStyle = createGlobalStyle`
-  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(
-    props
-  ) => props.tema.bg}; }
-  * { font-style: normal !important; box-sizing: border-box; font-family: sans-serif; outline: none !important; } 
-  @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
-`;
-
-const Container = styled.div`
-  width: 100%;
-  max-width: 430px;
-  min-height: 100vh;
-  margin: 0 auto;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: ${(props) => props.tema.bg};
-`;
-
-const HeaderImg = styled(motion.img)`
-  width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-`;
-const FooterImg = styled(motion.img)`
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-`;
-const TopSection = styled(motion.div)`
-  position: absolute;
-  top: 160px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 10;
-  animation: ${floating} 4s ease-in-out infinite;
-`;
-const Title = styled.h1`
-  font-family: "Lobster", cursive;
-  font-size: 50px;
-  margin: 5px 0;
-  text-align: center;
-  font-weight: 400;
-  ${(props) =>
-    props.temaActive === "hijau"
-      ? `background: ${props.titleGrad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
-      : `color: ${props.color};`}
-`;
-const GoldText = styled.p`
-  color: ${(props) => props.tema.gold};
-  margin: 0;
-  text-align: center;
-  font-size: ${(props) => props.size || "18px"};
-  font-weight: ${(props) => props.weight || "400"};
-`;
-const PhotoFrame = styled(motion.div)`
-  width: 320px;
-  height: 180px;
-  margin-bottom: 30px;
-  border-radius: 12px;
-  overflow: hidden;
-  animation: ${floating} 5s ease-in-out infinite;
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  body { margin: 0; padding: 0; background: #fff; }
+  * { font-style: normal !important; box-sizing: border-box; font-family: 'sans-serif'; }
 `;
 
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -115,287 +20,61 @@ export default function App() {
     if (name) setTo(decodeURIComponent(name));
 
     if (clientId) {
+      // Narik data pake ID dari URL
       fetch(`${GAS_URL}?id=${clientId}`)
-        .then((res) => res.json())
-        .then((res) => {
+        .then(res => res.json())
+        .then(res => {
           if (!res.error) setData(res);
-          setLoading(false);
         })
-        .catch(() => setLoading(false));
-    } else {
-      setLoading(false);
+        .catch(err => console.log("Error Database:", err));
     }
   }, []);
 
-  const handleRSVP = async (e) => {
-    e.preventDefault();
-    setSending(true);
-    const formData = new FormData(e.target);
-    try {
-      await fetch(GAS_URL, { method: "POST", body: formData, mode: "no-cors" });
-      alert("Terima Kasih, Konfirmasi Terkirim!");
-      setShowForm(false);
-    } catch (err) {
-      alert("Gagal kirim data.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  if (loading)
-    return (
-      <div
-        style={{
-          background: "#000",
-          color: "#fff",
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        Memuat Database Aksara...
-      </div>
-    );
-  if (!data)
-    return (
-      <div
-        style={{
-          background: "#000",
-          color: "#fff",
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        ID Undangan Tidak Valid.
-      </div>
-    );
-
-  const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
+  // Tampilan nunggu data
+  if (!data) return <div style={{ padding: '50px', textAlign: 'center' }}>Memuat Undangan Aksara...</div>;
 
   return (
     <>
-      <GlobalStyle tema={style} />
-      <Container tema={style}>
-        {/* HEADER ASET */}
-        <HeaderImg
-          src={`asset/header-${data.tema}.png`}
-          onError={(e) => {
-            e.target.src = `header-${data.tema}.png`;
-          }}
-        />
+      <GlobalStyle />
+      <div style={{ width: '100%', maxWidth: '430px', margin: '0 auto', textAlign: 'center', minHeight: '100vh', position: 'relative', backgroundColor: data.tema === 'hijau' ? '#042f2e' : '#fff' }}>
+        
+        {/* Header Aset dari folder public/asset/ */}
+        <img src={`/asset/header-${data.tema}.png`} style={{ width: '100%' }} alt="header" />
 
-        <TopSection>
-          <GoldText size="26px" tema={style}>
-            Undangan
-          </GoldText>
-          <Title
-            tema={style}
-            temaActive={data.tema}
-            titleGrad={style.titleGrad}
-            color={style.gold}
-          >
-            Halal Bihalal
-          </Title>
-          <GoldText size="16px" tema={style}>
-            {data.instansi}
-          </GoldText>
-        </TopSection>
+        <div style={{ padding: '20px', zIndex: 10, position: 'relative' }}>
+          <h1 style={{ color: '#c4a74f', fontSize: '42px', margin: '10px 0' }}>Halal Bihalal</h1>
+          <p style={{ color: data.tema === 'hijau' ? '#fff' : '#c4a74f', fontSize: '18px' }}>{data.instansi}</p>
+          
+          {/* Foto Acara */}
+          <div style={{ margin: '20px auto', width: '90%', borderRadius: '15px', overflow: 'hidden', border: '3px solid #c4a74f' }}>
+            <img src={data.fotourl || `/asset/foto-${data.tema}.png`} style={{ width: '100%', display: 'block' }} alt="foto" />
+          </div>
 
-        <div
-          style={{
-            paddingTop: "350px",
-            paddingBottom: "120px",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            zIndex: 5,
-          }}
-        >
-          <PhotoFrame>
-            <img
-              src={data.fotoUrl || `asset/foto-${data.tema}.png`}
-              onError={(e) => {
-                e.target.src = `foto-${data.tema}.png`;
-              }}
-              alt="Acara"
-            />
-          </PhotoFrame>
+          <div style={{ color: data.tema === 'hijau' ? '#fff' : '#444' }}>
+            <p style={{ fontWeight: 'bold', fontSize: '20px', margin: '5px 0' }}>{data.tanggal}</p>
+            <p style={{ fontSize: '14px' }}>Jam: {data.jam}</p>
+            <p style={{ fontSize: '16px' }}>📍 {data.lokasi}</p>
+          </div>
 
-          <GoldText weight="bold" tema={style}>
-            {data.tanggal}
-          </GoldText>
-          <GoldText size="14px" tema={style}>
-            {data.jam}
-          </GoldText>
-          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>
-            {data.lokasi}
-          </GoldText>
+          <div style={{ marginTop: '30px' }}>
+            <p style={{ color: '#c4a74f', marginBottom: '5px' }}>Kepada Yth:</p>
+            <h2 style={{ color: data.tema === 'hijau' ? '#fff' : '#c4a74f', margin: '0' }}>{to}</h2>
+          </div>
 
-          <GoldText size="14px" tema={style}>
-            Kpd Yth:
-          </GoldText>
-          <GoldText
-            size="22px"
-            weight="bold"
-            tema={style}
-            style={{ marginBottom: "30px" }}
-          >
-            {to}
-          </GoldText>
-
-          <a
-            href={data.mapsUrl}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              width: "280px",
-              height: "55px",
-              borderRadius: "50px",
-              border: `2px solid ${style.gold}`,
-              color: style.gold,
-              background: "white",
-              textDecoration: "none",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "15px",
-            }}
-          >
-            📍 Buka Lokasi Maps
-          </a>
-
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              width: "280px",
-              height: "55px",
-              borderRadius: "50px",
-              border: "none",
-              color: "#fff",
-              fontSize: "16px",
-              fontWeight: "bold",
-              background: style.btnGrad,
-              cursor: "pointer",
-            }}
-          >
-            Konfirmasi Kehadiran
-          </button>
+          {/* Tombol Aksi */}
+          <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+            <a href={data.mapsurl} target="_blank" rel="noreferrer" style={{ width: '80%', padding: '15px', borderRadius: '50px', border: '2px solid #c4a74f', color: '#c4a74f', textDecoration: 'none', fontWeight: 'bold', background: '#fff' }}>
+              📍 Buka Lokasi Maps
+            </a>
+            <button style={{ width: '80%', padding: '15px', borderRadius: '50px', border: 'none', color: '#fff', fontWeight: 'bold', background: 'linear-gradient(90deg, #C4A74F 0%, #967102 100%)', cursor: 'pointer' }}>
+              Konfirmasi Kehadiran
+            </button>
+          </div>
         </div>
 
-        {/* FOOTER ASET */}
-        <FooterImg
-          src={`asset/footer-${data.tema}.png`}
-          onError={(e) => {
-            e.target.src = `footer-${data.tema}.png`;
-          }}
-        />
-
-        {/* MODAL RSVP */}
-        <AnimatePresence>
-          {showForm && (
-            <div
-              onClick={() => setShowForm(false)}
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.85)",
-                zIndex: 999,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.8 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: "90%",
-                  maxWidth: "350px",
-                  background: "white",
-                  borderRadius: "20px",
-                  padding: "25px",
-                  border: `2px solid ${style.gold}`,
-                }}
-              >
-                <GoldText
-                  weight="bold"
-                  size="20px"
-                  style={{ marginBottom: "15px" }}
-                  tema={style}
-                >
-                  Form RSVP
-                </GoldText>
-                <form onSubmit={handleRSVP}>
-                  <input
-                    name="nama"
-                    defaultValue={to}
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      margin: "8px 0",
-                      border: "1px solid #ddd",
-                      borderRadius: "8px",
-                    }}
-                    placeholder="Nama"
-                  />
-                  <select
-                    name="kehadiran"
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      margin: "8px 0",
-                      border: "1px solid #ddd",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <option value="Hadir">Hadir</option>
-                    <option value="Berhalangan">Berhalangan</option>
-                  </select>
-                  <input
-                    name="jumlah"
-                    type="number"
-                    min="1"
-                    placeholder="Jumlah Orang"
-                    required
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      margin: "8px 0",
-                      border: "1px solid #ddd",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    style={{
-                      width: "100%",
-                      height: "45px",
-                      marginTop: "10px",
-                      background: style.btnGrad,
-                      border: "none",
-                      color: "#fff",
-                      borderRadius: "50px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {sending ? "Mengirim..." : "Kirim Konfirmasi"}
-                  </button>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      </Container>
+        {/* Footer Aset */}
+        <img src={`/asset/footer-${data.tema}.png`} style={{ width: '100%', marginTop: '30px' }} alt="footer" />
+      </div>
     </>
   );
 }
