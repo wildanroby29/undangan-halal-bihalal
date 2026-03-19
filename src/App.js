@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
 // --- CONFIG & DATA ---
+// PASTIIN INI PAKE LINK DEPLOYMENT TERBARU DARI APPS SCRIPT
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
@@ -138,7 +139,7 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
-  const [photoLoaded, setPhotoLoaded] = useState(false);
+  const [photoLoaded, setPhotoLoaded] = useState(false); // State buat nunggu foto
   const audioRef = useRef(null);
 
   const getDriveUrl = (url) => {
@@ -283,6 +284,7 @@ export default function App() {
                 </PhotoFrame>
               )}
 
+              {/* Sisa konten ini (tamu & tombol) CUMA muncul kalau foto sudah keload sempurna */}
               <AnimatePresence>
                 {(!data || !getDriveUrl(data.fotourl) || photoLoaded) && (
                   <motion.div
@@ -530,10 +532,12 @@ export default function App() {
                             method: "POST",
                             mode: "no-cors",
                           });
-                          alert("Tersimpan!");
+                          alert(
+                            "Terima kasih! Konfirmasi Anda telah tersimpan."
+                          );
                           setShowForm(false);
                         } catch {
-                          alert("Gagal!");
+                          alert("Maaf, terjadi kesalahan.");
                         } finally {
                           setLoadingForm(false);
                         }
