@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// PASTIIN INI PAKE LINK DEPLOYMENT TERBARU DARI APPS SCRIPT
+// --- CONFIG & DATA ---
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
@@ -12,7 +12,6 @@ const DAFTAR_TEMA = {
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     coverBg: "#fdfbf7",
-    textMain: "#333333",
   },
   hijau: {
     bg: "#042f2e",
@@ -20,18 +19,93 @@ const DAFTAR_TEMA = {
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
     coverBg: "#032524",
-    textMain: "#fef08a",
   },
 };
 
+// --- ANIMATIONS ---
 const shimmer = keyframes` 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } `;
 const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(196, 167, 79, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 167, 79, 0); } `;
 const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0px); } `;
 
+// --- STYLED COMPONENTS ---
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: #fff; }
-  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; } 
+  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+`;
+
+const WelcomeCover = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: ${(props) => props.bg};
+  background-image: url(${(props) => props.bgImg});
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+`;
+
+const Container = styled.div`
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  background-color: ${(props) => props.bg};
+  background-image: url(${(props) => props.bgImg});
+  background-size: cover;
+  background-position: center;
+`;
+
+const Content = styled(motion.div)`
+  padding: 130px 20px 100px;
+  z-index: 5;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+`;
+
+const Title = styled(motion.h1)`
+  font-family: "Lobster", cursive;
+  font-size: 50px;
+  margin: 0;
+  font-weight: 400;
+  ${(props) =>
+    props.tema === "hijau"
+      ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
+      : `color: ${props.color};`}
+`;
+
+const PhotoFrame = styled(motion.div)`
+  width: 220px;
+  height: 220px;
+  margin: 25px 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #c4a74f;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  animation: ${floating} 4s ease-in-out infinite;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const GoldText = styled(motion.p)`
+  color: #c4a74f;
+  margin: 2px 0;
+  text-align: center;
+  font-size: ${(props) => props.size || "16px"};
+  font-weight: ${(props) => (props.bold ? "700" : "400")};
 `;
 
 const LoadingScreen = styled.div`
@@ -63,22 +137,6 @@ const LoadingScreen = styled.div`
   }
 `;
 
-const WelcomeCover = styled(motion.div)`
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background-color: ${(props) => props.bg};
-  background-image: url(${(props) => props.bgImg});
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  text-align: center;
-`;
-
 const MusicButton = styled(motion.div)`
   position: fixed;
   bottom: 25px;
@@ -100,63 +158,7 @@ const MusicButton = styled(motion.div)`
   }
 `;
 
-const Container = styled.div`
-  width: 100%;
-  max-width: 430px;
-  min-height: 100vh;
-  margin: 0 auto;
-  position: relative;
-  background-color: ${(props) => props.bg};
-  background-image: url(${(props) => props.bgImg});
-  background-size: cover;
-  background-position: center;
-`;
-
-const Content = styled(motion.div)`
-  padding: 130px 20px 100px;
-  z-index: 5;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const Title = styled(motion.h1)`
-  font-family: "Lobster", cursive;
-  font-size: 50px;
-  margin: 0;
-  font-weight: 400;
-  ${(props) =>
-    props.tema === "hijau"
-      ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
-      : `color: ${props.color};`}
-`;
-
-const PhotoFrame = styled(motion.div)`
-  width: 220px;
-  height: 220px;
-  margin: 25px 0;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #c4a74f;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  animation: ${floating} 4s ease-in-out infinite;
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border: none !important;
-  }
-`;
-
-const GoldText = styled(motion.p)`
-  color: #c4a74f;
-  margin: 2px 0;
-  text-align: center;
-  font-size: ${(props) => props.size || "16px"};
-  font-weight: ${(props) => (props.bold ? "700" : "400")};
-`;
-
+// --- MAIN APP COMPONENT ---
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
@@ -167,6 +169,7 @@ export default function App() {
   const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
 
+  // UTILS
   const getDriveUrl = (url) => {
     if (!url) return null;
     if (
@@ -179,7 +182,7 @@ export default function App() {
       const fileId =
         url.split("/d/")[1]?.split("/")[0] ||
         url.split("id=")[1]?.split("&")[0];
-      return `https://lh3.googleusercontent.com/u/0/d/${fileId}=w1000`;
+      return `https://lh3.googleusercontent.com/d/$${fileId}=s1000`;
     }
     return url;
   };
@@ -214,19 +217,15 @@ export default function App() {
     const id = params.get("id");
     const t = params.get("to");
     const temaUrl = params.get("t");
-
     if (t) setTo(decodeURIComponent(t));
     if (temaUrl && DAFTAR_TEMA[temaUrl]) setUrlTema(temaUrl);
-
     if (id) {
       fetch(`${GAS_URL}?id=${id}`)
         .then((res) => res.json())
         .then((res) => {
-          if (!res.error) {
-            setData(res);
-          }
+          if (!res.error) setData(res);
         })
-        .catch((err) => console.error("Error fetching data:", err));
+        .catch((err) => console.error(err));
     }
   }, []);
 
@@ -236,34 +235,7 @@ export default function App() {
       audioRef.current
         .play()
         .then(() => setIsPlaying(true))
-        .catch(() => console.log("Menunggu interaksi user untuk musik"));
-    }
-  };
-
-  const toggleMusic = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleRSVP = async (e) => {
-    e.preventDefault();
-    setLoadingForm(true);
-    const formData = new URLSearchParams(new FormData(e.target)).toString();
-    try {
-      await fetch(`${GAS_URL}?${formData}`, {
-        method: "POST",
-        mode: "no-cors",
-      });
-      alert("Terima kasih! Konfirmasi Anda telah tersimpan.");
-      setShowForm(false);
-    } catch (e) {
-      alert("Maaf, terjadi kesalahan.");
-    } finally {
-      setLoadingForm(false);
+        .catch(() => {});
     }
   };
 
@@ -277,6 +249,7 @@ export default function App() {
       transition: { staggerChildren: 0.2, delayChildren: 0.5 },
     },
   };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
@@ -290,80 +263,71 @@ export default function App() {
       <AnimatePresence>
         {!isOpen && (
           <WelcomeCover
-            bg={styleUrl.coverBg}
+            bg={styleUrl.bg}
             bgImg={`/asset/pattern-${urlTema}.png`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ y: "-100%", opacity: 0 }}
-            transition={{
-              initial: { duration: 2.5, ease: "easeInOut" },
-              animate: { duration: 2.5, ease: "easeInOut" },
-              exit: { duration: 0.8, ease: "easeInOut" },
-            }}
+            transition={{ duration: 0.8 }}
           >
             <motion.img
-              initial={{ y: -100, opacity: 0 }}
+              initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1.5, ease: "easeInOut", delay: 1 }}
+              transition={{ delay: 0.3, duration: 1 }}
               src={`/asset/header-${urlTema}.png`}
-              style={{
-                width: "100%",
-                maxwidth: "430px",
-                position: "absolute",
-                top: 0,
-              }}
+              style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
             />
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1.5, delay: 1.5 }}
+            <Content
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
             >
-              <GoldText size="20px">Undangan</GoldText>
+              <GoldText variants={itemVariants} size="20px">
+                Undangan
+              </GoldText>
               <Title
+                variants={itemVariants}
                 tema={urlTema}
                 color={styleUrl.gold}
                 grad={styleUrl.titleGrad}
-                style={{ fontSize: "40px" }}
               >
                 Halal Bihalal
               </Title>
-
-              <PhotoFrame
-                style={{ width: "180px", height: "180px", margin: "20px 0" }}
+              <GoldText
+                variants={itemVariants}
+                size="14px"
+                style={{ letterSpacing: "2px", textTransform: "uppercase" }}
               >
+                {data ? data.instansi : "AKSARA STORE"}
+              </GoldText>
+
+              <PhotoFrame variants={itemVariants}>
                 <img
                   src={
                     data
                       ? getDriveUrl(data.fotourl)
                       : `/asset/foto-${urlTema}.png`
                   }
-                  alt="Foto Instansi"
-                  crossOrigin="anonymous"
-                  onError={(e) => {
-                    e.target.src = `/asset/foto-${urlTema}.png`;
-                  }}
+                  alt="Instansi"
                 />
               </PhotoFrame>
 
-              <motion.p
-                bold
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "700",
-                  color: styleUrl.textMain,
-                  margin: "10px 0",
-                }}
-              >
-                {data ? data.instansi : "Aksara Store"}
-              </motion.p>
+              <motion.div variants={itemVariants} style={{ marginTop: "10px" }}>
+                <GoldText size="14px">Kepada Yth:</GoldText>
+                <GoldText bold size="28px">
+                  {to}
+                </GoldText>
+              </motion.div>
 
               <motion.button
+                variants={itemVariants}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleOpenInvitation}
                 style={{
-                  padding: "15px 40px",
+                  width: "280px",
+                  height: "55px",
                   borderRadius: "50px",
                   border: "none",
                   background: styleUrl.btnGrad,
@@ -371,24 +335,24 @@ export default function App() {
                   fontSize: "16px",
                   fontWeight: "bold",
                   cursor: "pointer",
+                  marginTop: "30px",
                   boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
-                  marginTop: "20px",
                 }}
               >
-                📩 Buka Undangan
+                Buka Undangan
               </motion.button>
-            </motion.div>
+            </Content>
 
             <motion.img
-              initial={{ y: 100, opacity: 0 }}
+              initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1.5, ease: "easeInOut", delay: 1 }}
+              transition={{ delay: 0.3, duration: 1 }}
               src={`/asset/footer-${urlTema}.png`}
               style={{
                 width: "100%",
-                maxwidth: "430px",
                 position: "absolute",
                 bottom: 0,
+                left: 0,
               }}
             />
           </WelcomeCover>
@@ -409,9 +373,11 @@ export default function App() {
           <MusicButton
             btnGrad={style.btnGrad}
             playing={isPlaying}
-            onClick={toggleMusic}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            onClick={() => {
+              if (isPlaying) audioRef.current.pause();
+              else audioRef.current.play();
+              setIsPlaying(!isPlaying);
+            }}
           >
             {isPlaying ? (
               <svg viewBox="0 0 24 24">
@@ -426,9 +392,8 @@ export default function App() {
 
           <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
             <motion.img
-              initial={{ y: -100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1.2 }}
+              initial={{ y: -100 }}
+              animate={{ y: 0 }}
               src={`/asset/header-${data.tema}.png`}
               style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
             />
@@ -462,11 +427,7 @@ export default function App() {
                   src={
                     getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`
                   }
-                  alt="Foto Acara"
-                  crossOrigin="anonymous"
-                  onError={(e) => {
-                    e.target.src = `/asset/foto-${data.tema}.png`;
-                  }}
+                  alt="Acara"
                 />
               </PhotoFrame>
 
@@ -477,12 +438,12 @@ export default function App() {
                 <GoldText bold size="26px">
                   ({cleanJam(data.jam)} WIB)
                 </GoldText>
-                <GoldText bold size="22px" style={{ marginTop: "5px" }}>
+                <GoldText bold size="22px">
                   📍 {data.lokasi}
                 </GoldText>
               </motion.div>
 
-              <motion.div variants={itemVariants} style={{ margin: "30px 0" }}>
+              <motion.div variants={itemVariants} style={{ margin: "25px 0" }}>
                 <GoldText size="14px">Kepada Yth:</GoldText>
                 <GoldText bold size="28px">
                   {to}
@@ -495,7 +456,6 @@ export default function App() {
                   display: "flex",
                   flexDirection: "column",
                   gap: "15px",
-                  alignItems: "center",
                 }}
               >
                 <a
@@ -545,9 +505,8 @@ export default function App() {
             </Content>
 
             <motion.img
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1.2 }}
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
               src={`/asset/footer-${data.tema}.png`}
               style={{
                 width: "100%",
@@ -575,10 +534,9 @@ export default function App() {
                   onClick={() => setShowForm(false)}
                 >
                   <motion.div
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0.8 }}
                     onClick={(e) => e.stopPropagation()}
                     style={{
                       background: "#fff",
@@ -596,7 +554,29 @@ export default function App() {
                     >
                       Form Kehadiran
                     </GoldText>
-                    <form onSubmit={handleRSVP}>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setLoadingForm(true);
+                        const formData = new URLSearchParams(
+                          new FormData(e.target)
+                        ).toString();
+                        try {
+                          await fetch(`${GAS_URL}?${formData}`, {
+                            method: "POST",
+                            mode: "no-cors",
+                          });
+                          alert(
+                            "Terima kasih! Konfirmasi Anda telah tersimpan."
+                          );
+                          setShowForm(false);
+                        } catch {
+                          alert("Maaf, terjadi kesalahan.");
+                        } finally {
+                          setLoadingForm(false);
+                        }
+                      }}
+                    >
                       <input
                         type="hidden"
                         name="id"
@@ -610,25 +590,20 @@ export default function App() {
                         required
                         style={{
                           width: "100%",
-                          padding: "15px",
-                          marginBottom: "15px",
-                          border: "1px solid #eee",
-                          borderRadius: "12px",
-                          background: "#f9f9f9",
-                          fontSize: "16px",
+                          padding: "12px",
+                          marginBottom: "10px",
+                          borderRadius: "8px",
+                          border: "1px solid #ddd",
                         }}
                       />
                       <select
                         name="status"
-                        required
                         style={{
                           width: "100%",
-                          padding: "15px",
-                          marginBottom: "15px",
-                          border: "1px solid #eee",
-                          borderRadius: "12px",
-                          background: "#f9f9f9",
-                          fontSize: "16px",
+                          padding: "12px",
+                          marginBottom: "10px",
+                          borderRadius: "8px",
+                          border: "1px solid #ddd",
                         }}
                       >
                         <option value="Hadir">Hadir</option>
@@ -641,12 +616,10 @@ export default function App() {
                         required
                         style={{
                           width: "100%",
-                          padding: "15px",
+                          padding: "12px",
                           marginBottom: "20px",
-                          border: "1px solid #eee",
-                          borderRadius: "12px",
-                          background: "#f9f9f9",
-                          fontSize: "16px",
+                          borderRadius: "8px",
+                          border: "1px solid #ddd",
                         }}
                       />
                       <button
@@ -654,17 +627,16 @@ export default function App() {
                         disabled={loadingForm}
                         style={{
                           width: "100%",
-                          height: "55px",
-                          borderRadius: "50px",
+                          height: "50px",
+                          borderRadius: "25px",
                           border: "none",
                           background: style.btnGrad,
                           color: "#fff",
-                          fontSize: "16px",
                           fontWeight: "bold",
                           cursor: "pointer",
                         }}
                       >
-                        {loadingForm ? "Mengirim..." : "Kirim Sekarang"}
+                        {loadingForm ? "Mengirim..." : "Kirim Konfirmasi"}
                       </button>
                     </form>
                   </motion.div>
