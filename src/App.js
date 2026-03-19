@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// PASTIIN INI PAKE LINK DEPLOYMENT TERBARU DARI APPS SCRIPT
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
@@ -59,6 +58,19 @@ const LoadingScreen = styled.div`
   }
 `;
 
+const WelcomeCover = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: ${(props) => props.bg};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+`;
+
 const MusicButton = styled(motion.div)`
   position: fixed;
   bottom: 25px;
@@ -106,6 +118,7 @@ const Title = styled(motion.h1)`
   font-size: 50px;
   margin: 0;
   font-weight: 400;
+  text-align: center;
   ${(props) =>
     props.tema === "hijau"
       ? `background: ${props.grad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
@@ -125,7 +138,6 @@ const PhotoFrame = styled(motion.div)`
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border: none !important;
   }
 `;
 
@@ -140,26 +152,17 @@ const GoldText = styled(motion.p)`
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
+  const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
 
   const getDriveUrl = (url) => {
-    if (!url) return null;
-    if (
-      url.includes("ibb.co") ||
-      url.includes("postimg") ||
-      url.includes("telegra.ph")
-    )
-      return url;
-    if (url.includes("drive.google.com")) {
-      const fileId =
-        url.split("/d/")[1]?.split("/")[0] ||
-        url.split("id=")[1]?.split("&")[0];
-      return `https://lh3.googleusercontent.com/u/0/d/${fileId}=w1000`;
-    }
-    return url;
+    if (!url || !url.includes("drive.google.com")) return url;
+    const fileId =
+      url.split("/d/")[1]?.split("/")[0] || url.split("id=")[1]?.split("&")[0];
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
   };
 
   const formatTglIndo = (str) => {
@@ -175,18 +178,6 @@ export default function App() {
         });
   };
 
-  const cleanJam = (jamStr) => {
-    if (!jamStr) return "";
-    if (jamStr.toString().includes("T")) {
-      const d = new Date(jamStr);
-      return `${d.getHours().toString().padStart(2, "0")}:${d
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return jamStr;
-  };
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -196,32 +187,20 @@ export default function App() {
       fetch(`${GAS_URL}?id=${id}`)
         .then((res) => res.json())
         .then((res) => {
-          if (!res.error) {
-            setData(res);
-            // TRICK AUTOPLAY: Delay 1.5 detik biar browser lebih toleran
-            setTimeout(() => {
-              if (audioRef.current) {
-                audioRef.current
-                  .play()
-                  .then(() => setIsPlaying(true))
-                  .catch(() =>
-                    console.log("Menunggu interaksi user untuk musik")
-                  );
-              }
-            }, 1500);
-          }
+          if (!res.error) setData(res);
         })
         .catch((err) => console.error("Error fetching data:", err));
     }
   }, []);
 
-  const toggleMusic = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+  const handleOpenInvitation = () => {
+    setIsOpen(true);
+    if (audioRef.current) {
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((e) => console.log("Playback blocked"));
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleRSVP = async (e) => {
@@ -237,9 +216,8 @@ export default function App() {
       setShowForm(false);
     } catch (e) {
       alert("Maaf, terjadi kesalahan.");
-    } finally {
-      setLoadingForm(false);
     }
+    setLoadingForm(false);
   };
 
   if (!data)
@@ -253,29 +231,61 @@ export default function App() {
     );
 
   const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2, delayChildren: 0.5 },
-    },
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
-  };
 
   return (
     <>
       <GlobalStyle />
       <audio ref={audioRef} loop src="/asset/music.mp3"></audio>
 
+      <AnimatePresence>
+        {!isOpen && (
+          <WelcomeCover
+            bg={data.tema === "hijau" ? "#032524" : "#fdfbf7"}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.8 }}
+          >
+            <GoldText size="18px">Undangan</GoldText>
+            <Title tema={data.tema} color={style.gold} grad={style.titleGrad}>
+              Halal Bihalal
+            </Title>
+            <GoldText size="14px" style={{ marginBottom: "30px" }}>
+              {data.instansi}
+            </GoldText>
+            <GoldText size="14px">Kepada Yth:</GoldText>
+            <h2
+              style={{
+                fontSize: "28px",
+                color: data.tema === "hijau" ? "#fef08a" : "#333",
+                margin: "10px 0 30px",
+              }}
+            >
+              {to}
+            </h2>
+            <button
+              onClick={handleOpenInvitation}
+              style={{
+                padding: "15px 40px",
+                borderRadius: "50px",
+                border: "none",
+                background: style.btnGrad,
+                color: "#fff",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              📩 Buka Undangan
+            </button>
+          </WelcomeCover>
+        )}
+      </AnimatePresence>
+
       <MusicButton
         btnGrad={style.btnGrad}
         playing={isPlaying}
-        onClick={toggleMusic}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        onClick={() => {
+          isPlaying ? audioRef.current.pause() : audioRef.current.play();
+          setIsPlaying(!isPlaying);
+        }}
       >
         {isPlaying ? (
           <svg viewBox="0 0 24 24">
@@ -290,71 +300,55 @@ export default function App() {
 
       <Container bg={style.bg} bgImg={`/asset/pattern-${data.tema}.png`}>
         <motion.img
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.2 }}
+          initial={{ y: -100 }}
+          animate={{ y: 0 }}
           src={`/asset/header-${data.tema}.png`}
           style={{ width: "100%", position: "absolute", top: 0, left: 0 }}
         />
 
-        <Content variants={containerVariants} initial="hidden" animate="show">
-          <GoldText variants={itemVariants} size="20px">
-            Undangan
-          </GoldText>
-          <Title
-            variants={itemVariants}
-            tema={data.tema}
-            color={style.gold}
-            grad={style.titleGrad}
-          >
+        <Content initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <GoldText size="20px">Undangan</GoldText>
+          <Title tema={data.tema} color={style.gold} grad={style.titleGrad}>
             Halal Bihalal
           </Title>
           <GoldText
-            variants={itemVariants}
             size="14px"
             style={{ letterSpacing: "2px", textTransform: "uppercase" }}
           >
             {data.instansi}
           </GoldText>
 
-          <PhotoFrame variants={itemVariants}>
+          <PhotoFrame>
             <img
               src={getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`}
-              alt="Foto Acara"
-              crossOrigin="anonymous"
+              alt="Foto"
               onError={(e) => {
                 e.target.src = `/asset/foto-${data.tema}.png`;
               }}
             />
           </PhotoFrame>
 
-          <motion.div variants={itemVariants} style={{ margin: "15px 0" }}>
+          <div style={{ margin: "15px 0" }}>
             <GoldText bold size="22px">
               {formatTglIndo(data.tanggal)}
             </GoldText>
             <GoldText bold size="26px">
-              ({cleanJam(data.jam)} WIB)
+              ({data.jam} WIB)
             </GoldText>
             <GoldText bold size="22px" style={{ marginTop: "5px" }}>
               📍 {data.lokasi}
             </GoldText>
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants} style={{ margin: "30px 0" }}>
+          <div style={{ margin: "30px 0" }}>
             <GoldText size="14px">Kepada Yth:</GoldText>
             <GoldText bold size="28px">
               {to}
             </GoldText>
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={itemVariants}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "15px",
-              alignItems: "center",
-            }}
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "15px" }}
           >
             <a
               href={data.mapsurl}
@@ -362,9 +356,7 @@ export default function App() {
               rel="noreferrer"
               style={{ textDecoration: "none" }}
             >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <div
                 style={{
                   width: "280px",
                   height: "55px",
@@ -379,11 +371,9 @@ export default function App() {
                 }}
               >
                 📍 Buka Lokasi Maps
-              </motion.div>
+              </div>
             </a>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => setShowForm(true)}
               style={{
                 width: "280px",
@@ -392,22 +382,19 @@ export default function App() {
                 border: "none",
                 background: style.btnGrad,
                 color: "#fff",
-                fontSize: "16px",
                 fontWeight: "bold",
                 cursor: "pointer",
               }}
             >
               Konfirmasi Kehadiran
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
         </Content>
 
-        <motion.img
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.2 }}
+        <img
           src={`/asset/footer-${data.tema}.png`}
           style={{ width: "100%", position: "absolute", bottom: 0, left: 0 }}
+          alt="footer"
         />
 
         <AnimatePresence>
@@ -428,10 +415,9 @@ export default function App() {
               onClick={() => setShowForm(false)}
             >
               <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.5 }}
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   background: "#fff",
@@ -439,7 +425,6 @@ export default function App() {
                   maxWidth: "350px",
                   padding: "30px",
                   borderRadius: "25px",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
                 }}
               >
                 <GoldText
@@ -467,7 +452,6 @@ export default function App() {
                       marginBottom: "15px",
                       border: "1px solid #eee",
                       borderRadius: "12px",
-                      background: "#f9f9f9",
                       fontSize: "16px",
                     }}
                   />
@@ -480,7 +464,6 @@ export default function App() {
                       marginBottom: "15px",
                       border: "1px solid #eee",
                       borderRadius: "12px",
-                      background: "#f9f9f9",
                       fontSize: "16px",
                     }}
                   >
@@ -498,7 +481,6 @@ export default function App() {
                       marginBottom: "20px",
                       border: "1px solid #eee",
                       borderRadius: "12px",
-                      background: "#f9f9f9",
                       fontSize: "16px",
                     }}
                   />
@@ -512,9 +494,7 @@ export default function App() {
                       border: "none",
                       background: style.btnGrad,
                       color: "#fff",
-                      fontSize: "16px",
                       fontWeight: "bold",
-                      cursor: "pointer",
                     }}
                   >
                     {loadingForm ? "Mengirim..." : "Kirim Sekarang"}
