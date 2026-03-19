@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbzStL7c-wExxTlDljzEwy3yiGpXRWhMZGjk5nCRNGmJCBQOkTQWWRtAvCtTW2vfr-Lr5Q/exec";
+  "https://script.google.com/macros/s/AKfycbwBPp1u3ct1MhQBoscjQMIgYFYt2ZTvQt4wl6vRUcAjPyBVhsB-H2K06d17nHy17TCd/exec";
 
 const DAFTAR_TEMA = {
   putih: {
