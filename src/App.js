@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
-// PASTIIN URL INI HASIL DEPLOY TERBARU (ANYONE)
+// ==========================================
+// 1. KONFIGURASI GAS LU
+// ==========================================
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbw5QWbHV3dliRS1Pnp9vo054B3y1gddA4KmrqkQl_6PgJ_McZpgZgbY6TNgHEciIV2EOg/exec";
 
@@ -20,6 +22,7 @@ const DAFTAR_TEMA = {
   },
 };
 
+// --- ANIMASI & GLOBAL STYLE ---
 const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } `;
 
 const GlobalStyle = createGlobalStyle`
@@ -27,6 +30,7 @@ const GlobalStyle = createGlobalStyle`
     props
   ) => props.tema.bg}; }
   * { font-style: normal !important; box-sizing: border-box; font-family: sans-serif; outline: none !important; } 
+  @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
 `;
 
 const Container = styled.div`
@@ -129,7 +133,7 @@ export default function App() {
     const formData = new FormData(e.target);
     try {
       await fetch(GAS_URL, { method: "POST", body: formData, mode: "no-cors" });
-      alert("Konfirmasi Terkirim!");
+      alert("Terima Kasih, Konfirmasi Terkirim!");
       setShowForm(false);
     } catch (err) {
       alert("Gagal kirim data.");
@@ -150,7 +154,7 @@ export default function App() {
           justifyContent: "center",
         }}
       >
-        Memuat Database...
+        Memuat Database Aksara...
       </div>
     );
   if (!data)
@@ -165,7 +169,7 @@ export default function App() {
           justifyContent: "center",
         }}
       >
-        ID Undangan Salah.
+        ID Undangan Tidak Valid.
       </div>
     );
 
@@ -175,9 +179,13 @@ export default function App() {
     <>
       <GlobalStyle tema={style} />
       <Container tema={style}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');`}</style>
-
-        <HeaderImg src={`/asset/header-${data.tema}.png`} />
+        {/* HEADER ASET */}
+        <HeaderImg
+          src={`asset/header-${data.tema}.png`}
+          onError={(e) => {
+            e.target.src = `header-${data.tema}.png`;
+          }}
+        />
 
         <TopSection>
           <GoldText size="26px" tema={style}>
@@ -209,7 +217,10 @@ export default function App() {
         >
           <PhotoFrame>
             <img
-              src={data.fotoUrl || `/asset/foto-${data.tema}.png`}
+              src={data.fotoUrl || `asset/foto-${data.tema}.png`}
+              onError={(e) => {
+                e.target.src = `foto-${data.tema}.png`;
+              }}
               alt="Acara"
             />
           </PhotoFrame>
@@ -239,6 +250,7 @@ export default function App() {
           <a
             href={data.mapsUrl}
             target="_blank"
+            rel="noreferrer"
             style={{
               width: "280px",
               height: "55px",
@@ -254,7 +266,7 @@ export default function App() {
               marginBottom: "15px",
             }}
           >
-            📍 Lokasi Maps
+            📍 Buka Lokasi Maps
           </a>
 
           <button
@@ -275,8 +287,15 @@ export default function App() {
           </button>
         </div>
 
-        <FooterImg src={`/asset/footer-${data.tema}.png`} />
+        {/* FOOTER ASET */}
+        <FooterImg
+          src={`asset/footer-${data.tema}.png`}
+          onError={(e) => {
+            e.target.src = `footer-${data.tema}.png`;
+          }}
+        />
 
+        {/* MODAL RSVP */}
         <AnimatePresence>
           {showForm && (
             <div
