@@ -6,12 +6,13 @@ import styled, { createGlobalStyle, keyframes } from "styled-components";
 // 1. CONFIG DATA KLIEN (Ganti di Sini Aja)
 // ==========================================
 const CONFIG_CLIENT = {
-  instansi: "Keluarga Besar Wildan Roby",
+  instansi: "Nama Instansi / Keluarga",
   tanggal: "Minggu, 12 April 2026",
   jam: "10.00 WIB - Selesai",
-  lokasi: "Jl. Raya Utama No. 123, Jakarta Selatan",
-  mapsUrl: "https://goo.gl/maps/example", // Ganti link maps asli
-  scriptRSVP: "https://script.google.com/macros/s/AKfycbym7YKzkxd4SUsE-ybIzj5SwLh7sUnIYnjBE4IB7nN_usc6zRHEaTnsfxbQ3pIjMVnm6Q/exec"
+  lokasi: "Alamat Lengkap Lu Di Sini",
+  mapsUrl: "https://maps.app.goo.gl/7gyMqs8n5Ne3i9oaA",
+  scriptRSVP:
+    "https://script.google.com/macros/s/AKfycbym7YKzkxd4SUsE-ybIzj5SwLh7sUnIYnjBE4IB7nN_usc6zRHEaTnsfxbQ3pIjMVnm6Q/exec",
 };
 
 const DAFTAR_TEMA = {
@@ -43,7 +44,9 @@ const musicWave = keyframes`
 `;
 
 const GlobalStyle = createGlobalStyle`
-  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(props) => props.tema.bg}; }
+  html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(
+    props
+  ) => props.tema.bg}; }
   * { font-style: normal !important; box-sizing: border-box; font-family: sans-serif; outline: none !important; } 
 `;
 
@@ -122,7 +125,7 @@ const TopSection = styled(motion.div)`
 `;
 
 const Title = styled.h1`
-  font-family: 'Lobster', cursive;
+  font-family: "Lobster", cursive;
   font-size: 50px;
   margin: 5px 0;
   text-align: center;
@@ -151,13 +154,18 @@ const MainContent = styled(motion.div)`
 `;
 
 const PhotoFrame = styled(motion.div)`
-  width: ${(props) => (props.tema === "hijau" ? "204px" : "300px")};
+  width: ${(props) => (props.tema === "hijau" ? "204px" : "320px")};
   height: ${(props) => (props.tema === "hijau" ? "226px" : "180px")};
   margin-bottom: 30px;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid ${(props) => props.color};
-  img { width: 100%; height: 100%; object-fit: cover; }
+  animation: ${floating} 5s ease-in-out infinite;
+  /* STROKE EMAS SUDAH DIHAPUS DI SINI */
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 const ActionButton = styled(motion.button)`
@@ -241,7 +249,9 @@ export default function App() {
   const toggleMusic = () => {
     if (isPlaying) audioRef.current.pause();
     else {
-      audioRef.current.play().catch(() => console.log("User must interact first"));
+      audioRef.current
+        .play()
+        .catch(() => console.log("Interaksi user diperlukan"));
     }
     setIsPlaying(!isPlaying);
   };
@@ -275,59 +285,156 @@ export default function App() {
         <audio ref={audioRef} loop src="/asset/music.mp3" />
 
         <MusicWrapper>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "16px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              gap: "2px",
+              height: "16px",
+            }}
+          >
             <WaveBar color={style.gold} dur="0.6s" playing={isPlaying} />
             <WaveBar color={style.gold} dur="0.8s" playing={isPlaying} />
             <WaveBar color={style.gold} dur="0.5s" playing={isPlaying} />
           </div>
-          <MusicToggle onClick={toggleMusic} whileTap={{ scale: 0.9 }} tema={style}>
+          <MusicToggle
+            onClick={toggleMusic}
+            whileTap={{ scale: 0.9 }}
+            tema={style}
+          >
             {isPlaying ? "⏸" : "🎵"}
           </MusicToggle>
         </MusicWrapper>
 
-        <HeaderImg src={`/asset/header-${tema}.png`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
+        <HeaderImg
+          src={`/asset/header-${tema}.png`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        />
 
-        <TopSection initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <GoldText size="26px" tema={style}>Undangan</GoldText>
-          <Title tema={style} temaActive={tema} titleGrad={style.titleGrad} color={style.gold}>Halal Bihalal</Title>
-          <GoldText size="16px" tema={style}>{CONFIG_CLIENT.instansi}</GoldText>
+        <TopSection
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <GoldText size="26px" tema={style}>
+            Undangan
+          </GoldText>
+          <Title
+            tema={style}
+            temaActive={tema}
+            titleGrad={style.titleGrad}
+            color={style.gold}
+          >
+            Halal Bihalal
+          </Title>
+          <GoldText size="16px" tema={style}>
+            {CONFIG_CLIENT.instansi}
+          </GoldText>
         </TopSection>
 
         <MainContent initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <PhotoFrame tema={tema} color={style.gold}>
+          <PhotoFrame tema={tema}>
             <img src={`/asset/foto-${tema}.png`} alt="Acara" />
           </PhotoFrame>
 
-          <GoldText weight="bold" tema={style}>{CONFIG_CLIENT.tanggal}</GoldText>
-          <GoldText size="14px" tema={style}>{CONFIG_CLIENT.jam}</GoldText>
-          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>{CONFIG_CLIENT.lokasi}</GoldText>
+          <GoldText weight="bold" tema={style}>
+            {CONFIG_CLIENT.tanggal}
+          </GoldText>
+          <GoldText size="14px" tema={style}>
+            {CONFIG_CLIENT.jam}
+          </GoldText>
+          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>
+            {CONFIG_CLIENT.lokasi}
+          </GoldText>
 
-          <GoldText size="14px" tema={style}>Kpd Yth:</GoldText>
-          <GoldText size="22px" weight="bold" tema={style} style={{ marginBottom: "30px" }}>{to}</GoldText>
+          <GoldText size="14px" tema={style}>
+            Kpd Yth:
+          </GoldText>
+          <GoldText
+            size="22px"
+            weight="bold"
+            tema={style}
+            style={{ marginBottom: "30px" }}
+          >
+            {to}
+          </GoldText>
 
-          <MapsButton href={CONFIG_CLIENT.mapsUrl} target="_blank" tema={style}>📍 Buka Lokasi Maps</MapsButton>
-          <ActionButton onClick={() => setShowForm(true)} tema={style} whileTap={{ scale: 0.95 }}>Konfirmasi Kehadiran</ActionButton>
+          <MapsButton href={CONFIG_CLIENT.mapsUrl} target="_blank" tema={style}>
+            📍 Buka Lokasi Maps
+          </MapsButton>
+          <ActionButton
+            onClick={() => setShowForm(true)}
+            tema={style}
+            whileTap={{ scale: 0.95 }}
+          >
+            Konfirmasi Kehadiran
+          </ActionButton>
         </MainContent>
 
         <FooterImg src={`/asset/footer-${tema}.png`} />
 
         <AnimatePresence>
           {showForm && (
-            <Overlay initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)}>
-              <Modal tema={style} onClick={(e) => e.stopPropagation()} initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-                <GoldText weight="bold" size="20px" style={{ marginBottom: "15px" }} tema={style}>Form Kehadiran</GoldText>
+            <Overlay
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowForm(false)}
+            >
+              <Modal
+                tema={style}
+                onClick={(e) => e.stopPropagation()}
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+              >
+                <GoldText
+                  weight="bold"
+                  size="20px"
+                  style={{ marginBottom: "15px" }}
+                  tema={style}
+                >
+                  Form Kehadiran
+                </GoldText>
                 <form onSubmit={handleFormSubmit}>
-                  <Input name="nama" defaultValue={to} required placeholder="Nama Lengkap" />
+                  <Input
+                    name="nama"
+                    defaultValue={to}
+                    required
+                    placeholder="Nama Lengkap"
+                  />
                   <Select name="kehadiran" required>
                     <option value="">-- Pilih Kehadiran --</option>
                     <option value="Hadir">Hadir</option>
                     <option value="Tidak Hadir">Berhalangan</option>
                   </Select>
-                  <Input name="jumlah" type="number" required placeholder="Jumlah Orang" min="1" />
-                  <ActionButton as="button" type="submit" disabled={loading} style={{ width: "100%", height: "45px", marginTop: "10px" }} tema={style}>
+                  <Input
+                    name="jumlah"
+                    type="number"
+                    required
+                    placeholder="Jumlah Orang"
+                    min="1"
+                  />
+                  <ActionButton
+                    as="button"
+                    type="submit"
+                    disabled={loading}
+                    style={{ width: "100%", height: "45px", marginTop: "10px" }}
+                    tema={style}
+                  >
                     {loading ? "Mengirim..." : "Kirim Sekarang"}
                   </ActionButton>
-                  <p onClick={() => setShowForm(false)} style={{ textAlign: "center", cursor: "pointer", color: "#999", marginTop: "15px", fontSize: "14px" }}>Batal</p>
+                  <p
+                    onClick={() => setShowForm(false)}
+                    style={{
+                      textAlign: "center",
+                      cursor: "pointer",
+                      color: "#999",
+                      marginTop: "15px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Batal
+                  </p>
                 </form>
               </Modal>
             </Overlay>
