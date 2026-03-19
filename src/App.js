@@ -12,6 +12,7 @@ const DAFTAR_TEMA = {
     gold: "#c4a74f",
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     coverBg: "#fdfbf7",
+    textMain: "#333333",
   },
   hijau: {
     bg: "#042f2e",
@@ -19,6 +20,7 @@ const DAFTAR_TEMA = {
     btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
     titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
     coverBg: "#032524",
+    textMain: "#fef08a",
   },
 };
 
@@ -70,9 +72,11 @@ const WelcomeCover = styled(motion.div)`
   background-size: cover;
   background-position: center;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  text-align: center;
 `;
 
 const MusicButton = styled(motion.div)`
@@ -309,25 +313,72 @@ export default function App() {
                 top: 0,
               }}
             />
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleOpenInvitation}
-              style={{
-                padding: "15px 40px",
-                borderRadius: "50px",
-                border: "none",
-                background: styleUrl.btnGrad,
-                color: "#fff",
-                fontSize: "16px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
-                zIndex: 10,
-              }}
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.5, delay: 1.5 }}
             >
-              Undangan Halal Bihalal
-            </motion.button>
+              <GoldText size="20px">Undangan</GoldText>
+              <Title
+                tema={urlTema}
+                color={styleUrl.gold}
+                grad={styleUrl.titleGrad}
+                style={{ fontSize: "40px" }}
+              >
+                Halal Bihalal
+              </Title>
+
+              <PhotoFrame
+                style={{ width: "180px", height: "180px", margin: "20px 0" }}
+              >
+                <img
+                  src={
+                    data
+                      ? getDriveUrl(data.fotourl)
+                      : `/asset/foto-${urlTema}.png`
+                  }
+                  alt="Foto Instansi"
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    e.target.src = `/asset/foto-${urlTema}.png`;
+                  }}
+                />
+              </PhotoFrame>
+
+              <motion.p
+                bold
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: styleUrl.textMain,
+                  margin: "10px 0",
+                }}
+              >
+                {data ? data.instansi : "Aksara Store"}
+              </motion.p>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleOpenInvitation}
+                style={{
+                  padding: "15px 40px",
+                  borderRadius: "50px",
+                  border: "none",
+                  background: styleUrl.btnGrad,
+                  color: "#fff",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
+                  marginTop: "20px",
+                }}
+              >
+                📩 Buka Undangan
+              </motion.button>
+            </motion.div>
+
             <motion.img
               initial={{ y: 100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
