@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styled, { createGlobalStyle, keyframes } from "styled-components";
 
+// PASTIIN INI PAKE LINK DEPLOYMENT TERBARU DARI APPS SCRIPT
 const GAS_URL =
-  "https://script.google.com/macros/s/AKfycbwFIk7uPGb93SzhTWyljVPa1aQoY4kA3y8xughXhSAv_mCKEZm4V0IYrr7I6_1yFxGgLw/exec";
+  "https://script.google.com/macros/s/AKfycbxOovoxyCv_GSAOtFCm0FdbgTr3qHW1JWjjYvMju5QhKnk-rPwYlApnI7_tWvrGaJP9Qg/exec";
 
 const DAFTAR_TEMA = {
   putih: {
@@ -25,7 +26,13 @@ const pulse = keyframes` 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196,
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;700&display=swap');
   html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: #fff; }
-  * { font-style: normal !important; box-sizing: border-box; font-family: 'Poppins', sans-serif; } 
+  
+  /* ANTI ITALIC - SESUAI REQUEST LU DAN */
+  * { 
+    font-style: normal !important; 
+    box-sizing: border-box; 
+    font-family: 'Poppins', sans-serif; 
+  } 
 `;
 
 const LoadingScreen = styled.div`
@@ -98,6 +105,7 @@ const Content = styled(motion.div)`
   flex-direction: column;
   align-items: center;
 `;
+
 const Title = styled(motion.h1)`
   font-family: "Lobster", cursive;
   font-size: 50px;
@@ -140,14 +148,27 @@ export default function App() {
   const [loadingForm, setLoadingForm] = useState(false);
   const audioRef = useRef(null);
 
+  // FUNGSI HANDLER FOTO: ANTI REWEL BUAT IMGBB & DRIVE
   const getDriveUrl = (url) => {
     if (!url) return null;
+
+    // Kalau link ImgBB (punya .jpg/png/webp), langsung gas
+    if (
+      url.includes("ibb.co") ||
+      url.includes("postimg") ||
+      url.includes("telegra.ph")
+    ) {
+      return url;
+    }
+
+    // Kalau kepaksa pake Drive, pake trik thumbnail biar stabil
     if (url.includes("drive.google.com")) {
       const fileId =
         url.split("/d/")[1]?.split("/")[0] ||
         url.split("id=")[1]?.split("&")[0];
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      return `https://lh3.googleusercontent.com/d/$${fileId}=w1000`;
     }
+
     return url;
   };
 
@@ -186,7 +207,8 @@ export default function App() {
         .then((res) => res.json())
         .then((res) => {
           if (!res.error) setData(res);
-        });
+        })
+        .catch((err) => console.error("Error fetching data:", err));
     }
   }, []);
 
@@ -220,7 +242,7 @@ export default function App() {
   if (!data)
     return (
       <LoadingScreen>
-        <div className="logo">Undangan</div>
+        <div className="logo">Aksara Store</div>
         <div className="bar">
           <div className="progress" />
         </div>
@@ -293,6 +315,7 @@ export default function App() {
             <img
               src={getDriveUrl(data.fotourl) || `/asset/foto-${data.tema}.png`}
               alt="Foto Acara"
+              crossOrigin="anonymous"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = `/asset/foto-${data.tema}.png`;
