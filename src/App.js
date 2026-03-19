@@ -1,19 +1,35 @@
 import React, { useState, useEffect, useRef } from "react";
-import styled, { createGlobalStyle, keyframes } from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
+import styled, { createGlobalStyle, keyframes } from "styled-components";
 
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbzStL7c-wExxTlDljzEwy3yiGpXRWhMZGjk5nCRNGmJCBQOkTQWWRtAvCtTW2vfr-Lr5Q/exec";
 
+const DAFTAR_TEMA = {
+  putih: {
+    bg: "#ffffff",
+    gold: "#c4a74f",
+    btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
+    shadow: "rgba(150, 113, 2, 0.3)",
+  },
+  hijau: {
+    bg: "#042f2e",
+    gold: "#c4a74f",
+    btnGrad: "linear-gradient(90deg, #C4A74F 0%, #967102 49%, #C4A74F 99%)",
+    shadow: "rgba(196, 167, 79, 0.3)",
+    titleGrad: "linear-gradient(180deg, #fef08a 0%, #c4a74f 50%, #967102 100%)",
+  },
+};
+
+const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } `;
+const musicWave = keyframes` 0%, 100% { height: 4px; } 50% { height: 16px; } `;
+
 const GlobalStyle = createGlobalStyle`
   html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: ${(
     props
-  ) => props.bg}; }
-  * { font-style: normal !important; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; outline: none !important; }
-  @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
+  ) => props.tema.bg}; }
+  * { font-style: normal !important; box-sizing: border-box; font-family: sans-serif; outline: none !important; } 
 `;
-
-const floating = keyframes` 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } `;
 
 const Container = styled.div`
   width: 100%;
@@ -24,7 +40,9 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: ${(props) => props.bg};
+  background-image: url(${(props) => props.bgImg});
+  background-size: cover;
+  background-position: center;
 `;
 const HeaderImg = styled(motion.img)`
   width: 100%;
@@ -40,23 +58,80 @@ const FooterImg = styled(motion.img)`
   left: 0;
   z-index: 1;
 `;
-const Content = styled.div`
-  padding: 340px 20px 140px 20px;
+const MusicWrapper = styled.div`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+const WaveBar = styled.div`
+  width: 3px;
+  background: ${(props) => props.color};
+  border-radius: 2px;
+  animation: ${musicWave} ${(props) => props.dur} ease-in-out infinite;
+  animation-play-state: ${(props) => (props.playing ? "running" : "paused")};
+`;
+const MusicToggle = styled(motion.button)`
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: ${(props) => props.tema.gold};
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+`;
+const TopSection = styled(motion.div)`
+  position: absolute;
+  top: 160px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  animation: ${floating} 4s ease-in-out infinite;
+`;
+const Title = styled.h1`
+  font-family: "Lobster", cursive;
+  font-size: 50px;
+  margin: 5px 0;
+  text-align: center;
+  ${(props) =>
+    props.temaActive === "hijau"
+      ? `background: ${props.titleGrad}; -webkit-background-clip: text; -webkit-text-fill-color: transparent;`
+      : `color: ${props.color};`}
+`;
+const GoldText = styled.p`
+  color: ${(props) => props.tema.gold};
+  margin: 0;
+  text-align: center;
+  font-size: ${(props) => props.size || "18px"};
+  font-weight: ${(props) => props.weight || "400"};
+`;
+const MainContent = styled(motion.div)`
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 5;
-  text-align: center;
+  padding-top: 320px;
+  padding-bottom: 120px;
 `;
+
+// FOTO TANPA BORDER (BIAR GA JIJI)
 const PhotoFrame = styled(motion.div)`
-  width: 300px;
-  height: 170px;
-  margin: 20px 0;
-  border-radius: 15px;
+  width: ${(props) => (props.tema === "hijau" ? "204px" : "320px")};
+  height: ${(props) => (props.tema === "hijau" ? "226px" : "180px")};
+  margin-bottom: 30px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 3px solid #c4a74f;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  animation: ${floating} 5s ease-in-out infinite;
   img {
     width: 100%;
     height: 100%;
@@ -64,256 +139,253 @@ const PhotoFrame = styled(motion.div)`
   }
 `;
 
+const ActionButton = styled(motion.button)`
+  width: 280px;
+  height: 55px;
+  border-radius: 50px;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  background: ${(props) => props.tema.btnGrad};
+  box-shadow: 0 5px 15px ${(props) => props.tema.shadow};
+  cursor: pointer;
+`;
+const MapsButton = styled.a`
+  width: 280px;
+  height: 55px;
+  border-radius: 50px;
+  border: 2px solid ${(props) => props.tema.gold};
+  color: ${(props) => props.tema.gold};
+  background: white;
+  text-decoration: none;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+`;
+const Overlay = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const Modal = styled(motion.div)`
+  width: 90%;
+  max-width: 350px;
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  border: 2px solid ${(props) => props.tema.gold};
+`;
+const Input = styled.input`
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+`;
+const Select = styled.select`
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+`;
+
 export default function App() {
   const [data, setData] = useState(null);
   const [to, setTo] = useState("Tamu Undangan");
-  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showRSVP, setShowRSVP] = useState(false);
   const audioRef = useRef(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const clientId = params.get("id");
-    const name = params.get("to");
-    if (name) setTo(decodeURIComponent(name));
-    if (clientId) {
-      fetch(`${GAS_URL}?id=${clientId}`)
-        .then((res) => res.json())
-        .then((res) => {
-          if (!res.error) setData(res);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
-  }, []);
-
-  const toggleMusic = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
 
   const formatTgl = (str) => {
     if (!str || !str.includes("T")) return str;
     return new Date(str).toLocaleDateString("id-ID", {
+      weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric",
     });
   };
 
-  if (loading)
-    return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#042f2e",
-          color: "#fff",
-        }}
-      >
-        Menyiapkan Undangan...
-      </div>
-    );
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const n = params.get("to");
+    if (n) setTo(decodeURIComponent(n));
+    if (id) {
+      fetch(`${GAS_URL}?id=${id}`)
+        .then((res) => res.json())
+        .then((res) => {
+          if (!res.error) setData(res);
+        });
+    }
+  }, []);
+
+  const toggleMusic = () => {
+    if (isPlaying) audioRef.current.pause();
+    else audioRef.current.play().catch(() => {});
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const formData = new FormData(e.target);
+    try {
+      await fetch(GAS_URL, { method: "POST", body: formData, mode: "no-cors" });
+      alert("Konfirmasi Berhasil!");
+      setShowForm(false);
+    } catch (error) {
+      alert("Gagal kirim.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!data)
     return (
       <div
         style={{
           height: "100vh",
+          background: "#000",
+          color: "#fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000",
-          color: "#fff",
         }}
       >
-        ID Tidak Ditemukan
+        Memuat Undangan...
       </div>
     );
 
-  const style =
-    data.tema === "hijau"
-      ? { bg: "#042f2e", gold: "#c4a74f", text: "#ffffff" }
-      : { bg: "#ffffff", gold: "#c4a74f", text: "#c4a74f" };
+  const style = DAFTAR_TEMA[data.tema] || DAFTAR_TEMA.putih;
 
   return (
     <>
-      <GlobalStyle bg={style.bg} />
-      <Container bg={style.bg}>
-        <audio ref={audioRef} src="/asset/music.mp3" loop />
-
-        {/* MUSIC BUTTON */}
-        <div
-          onClick={toggleMusic}
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            zIndex: 100,
-            background: "#c4a74f",
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-          }}
-        >
-          {isPlaying ? "⏸️" : "🎵"}
-        </div>
-
-        <HeaderImg
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          src={`/asset/header-${data.tema}.png`}
-        />
-
-        <Content>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{ color: style.gold, fontSize: "22px", margin: 0 }}
-          >
-            Undangan
-          </motion.p>
-          <motion.h1
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
+      <GlobalStyle tema={style} />
+      <Container tema={style} bgImg={`/asset/pattern-${data.tema}.png`}>
+        <audio ref={audioRef} loop src="/asset/music.mp3" />
+        <MusicWrapper>
+          <div
             style={{
-              fontFamily: "Lobster, cursive",
-              color: style.gold,
-              fontSize: "48px",
-              margin: "5px 0",
-              fontWeight: "400",
+              display: "flex",
+              alignItems: "flex-end",
+              gap: "2px",
+              height: "16px",
             }}
           >
-            Halal Bihalal
-          </motion.h1>
-          <p style={{ color: style.text, fontSize: "18px" }}>{data.instansi}</p>
+            <WaveBar color={style.gold} dur="0.6s" playing={isPlaying} />
+            <WaveBar color={style.gold} dur="0.8s" playing={isPlaying} />
+            <WaveBar color={style.gold} dur="0.5s" playing={isPlaying} />
+          </div>
+          <MusicToggle onClick={toggleMusic} tema={style}>
+            {isPlaying ? "⏸" : "🎵"}
+          </MusicToggle>
+        </MusicWrapper>
 
-          <PhotoFrame
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity }}
+        <HeaderImg
+          src={`/asset/header-${data.tema}.png`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        />
+
+        <TopSection
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <GoldText size="26px" tema={style}>
+            Undangan
+          </GoldText>
+          <Title
+            tema={style}
+            temaActive={data.tema}
+            titleGrad={style.titleGrad}
+            color={style.gold}
           >
+            Halal Bihalal
+          </Title>
+          <GoldText size="16px" tema={style}>
+            {data.instansi}
+          </GoldText>
+        </TopSection>
+
+        <MainContent initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <PhotoFrame tema={data.tema}>
             <img
               src={data.fotourl || `/asset/foto-${data.tema}.png`}
               alt="Acara"
             />
           </PhotoFrame>
 
-          <div style={{ color: style.text }}>
-            <p
-              style={{ fontWeight: "bold", fontSize: "22px", margin: "5px 0" }}
-            >
-              {formatTgl(data.tanggal)}
-            </p>
-            <p style={{ fontSize: "16px" }}>{data.jam} WIB</p>
-            <p style={{ fontSize: "16px", margin: "10px 0 20px 0" }}>
-              📍 {data.lokasi}
-            </p>
-          </div>
+          <GoldText weight="bold" tema={style}>
+            {formatTgl(data.tanggal)}
+          </GoldText>
+          <GoldText size="14px" tema={style}>
+            {data.jam}
+          </GoldText>
+          <GoldText size="14px" tema={style} style={{ marginBottom: "30px" }}>
+            {data.lokasi}
+          </GoldText>
 
-          <p style={{ color: style.gold, fontSize: "14px" }}>Kepada Yth:</p>
-          <h2
-            style={{
-              color: style.text,
-              fontSize: "26px",
-              margin: "5px 0 30px 0",
-            }}
+          <GoldText size="14px" tema={style}>
+            Kpd Yth:
+          </GoldText>
+          <GoldText
+            size="22px"
+            weight="bold"
+            tema={style}
+            style={{ marginBottom: "30px" }}
           >
             {to}
-          </h2>
+          </GoldText>
 
-          <a
-            href={data.mapsurl}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              width: "280px",
-              padding: "15px",
-              borderRadius: "50px",
-              border: `2px solid ${style.gold}`,
-              color: style.gold,
-              background: "white",
-              textDecoration: "none",
-              fontWeight: "bold",
-              marginBottom: "15px",
-              display: "block",
-            }}
-          >
-            📍 Lihat Lokasi Acara
-          </a>
-
-          <button
-            onClick={() => setShowRSVP(true)}
-            style={{
-              width: "280px",
-              padding: "15px",
-              borderRadius: "50px",
-              border: "none",
-              color: "#fff",
-              fontSize: "16px",
-              fontWeight: "bold",
-              background: "linear-gradient(90deg, #C4A74F 0%, #967102 100%)",
-              cursor: "pointer",
-            }}
+          {/* MAPS AMBIL DARI SHEET */}
+          <MapsButton href={data.mapsurl} target="_blank" tema={style}>
+            📍 Buka Lokasi Maps
+          </MapsButton>
+          <ActionButton
+            onClick={() => setShowForm(true)}
+            tema={style}
+            whileTap={{ scale: 0.95 }}
           >
             Konfirmasi Kehadiran
-          </button>
-        </Content>
+          </ActionButton>
+        </MainContent>
 
-        <FooterImg
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          src={`/asset/footer-${data.tema}.png`}
-        />
+        <FooterImg src={`/asset/footer-${data.tema}.png`} />
 
-        {/* MODAL RSVP */}
         <AnimatePresence>
-          {showRSVP && (
-            <motion.div
+          {showForm && (
+            <Overlay
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.8)",
-                zIndex: 200,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              onClick={() => setShowForm(false)}
             >
-              <motion.div
+              <Modal
+                tema={style}
+                onClick={(e) => e.stopPropagation()}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                style={{
-                  background: "#fff",
-                  width: "90%",
-                  maxWidth: "350px",
-                  padding: "25px",
-                  borderRadius: "20px",
-                  textAlign: "center",
-                }}
               >
-                <h3 style={{ color: "#c4a74f", margin: "0 0 15px 0" }}>
-                  Konfirmasi Kehadiran
-                </h3>
-                <form
-                  action={GAS_URL}
-                  method="POST"
-                  target="_blank"
-                  onSubmit={() => setShowRSVP(false)}
+                <GoldText
+                  weight="bold"
+                  size="20px"
+                  style={{ marginBottom: "15px" }}
+                  tema={style}
                 >
+                  Form Kehadiran
+                </GoldText>
+                <form onSubmit={handleFormSubmit}>
+                  {/* ID DARI URL BIAR MASUK KE BARIS YG BENER DI SHEET */}
                   <input
                     type="hidden"
                     name="id"
@@ -321,73 +393,48 @@ export default function App() {
                       "id"
                     )}
                   />
-                  <input
+                  <Input
                     name="nama"
                     defaultValue={to}
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      margin: "5px 0",
-                      borderRadius: "8px",
-                      border: "1px solid #ccc",
-                    }}
+                    placeholder="Nama Lengkap"
                   />
-                  <select
-                    name="status"
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      margin: "5px 0",
-                      borderRadius: "8px",
-                      border: "1px solid #ccc",
-                    }}
-                  >
-                    <option value="Hadir">Saya Akan Hadir</option>
-                    <option value="Berhalangan">Maaf, Berhalangan</option>
-                  </select>
-                  <input
+                  <Select name="status" required>
+                    <option value="">-- Pilih Kehadiran --</option>
+                    <option value="Hadir">Hadir</option>
+                    <option value="Berhalangan">Berhalangan</option>
+                  </Select>
+                  <Input
                     name="jumlah"
                     type="number"
-                    placeholder="Jumlah Orang"
                     required
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      margin: "5px 0",
-                      borderRadius: "8px",
-                      border: "1px solid #ccc",
-                    }}
+                    placeholder="Jumlah Orang"
+                    min="1"
                   />
-                  <button
+                  <ActionButton
+                    as="button"
                     type="submit"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      marginTop: "15px",
-                      borderRadius: "50px",
-                      border: "none",
-                      background: "#c4a74f",
-                      color: "#fff",
-                      fontWeight: "bold",
-                    }}
+                    disabled={loading}
+                    style={{ width: "100%", height: "45px", marginTop: "10px" }}
+                    tema={style}
                   >
-                    Kirim Konfirmasi
-                  </button>
+                    {loading ? "Mengirim..." : "Kirim Sekarang"}
+                  </ActionButton>
                   <p
-                    onClick={() => setShowRSVP(false)}
+                    onClick={() => setShowForm(false)}
                     style={{
-                      marginTop: "15px",
-                      fontSize: "12px",
+                      textAlign: "center",
                       cursor: "pointer",
-                      color: "#888",
+                      color: "#999",
+                      marginTop: "15px",
+                      fontSize: "14px",
                     }}
                   >
                     Batal
                   </p>
                 </form>
-              </motion.div>
-            </motion.div>
+              </Modal>
+            </Overlay>
           )}
         </AnimatePresence>
       </Container>
