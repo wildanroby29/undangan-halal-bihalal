@@ -265,7 +265,7 @@ export default function App() {
                 transition={{ delay: 0.9 }}
                 style={{ letterSpacing: "2px", textTransform: "uppercase" }}
               >
-                {data ? data.instansi : "AKSARA STORE"}
+                {data ? data.instansi : ""}
               </GoldText>
 
               {/* FOTO COVER: Trigger photoReady pas LOAD */}
